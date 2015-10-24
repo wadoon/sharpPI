@@ -5,6 +5,18 @@
 #include "PICounter.h"
 #include <iostream>
 #include "entropy.h"
+
+
+vector<Lit> create_assumption(const vector<Var> &vars, uint64_t value) {
+    vector<Lit> assum;
+    for (Var var : vars) {
+        bool b = (bool) var & 1;
+        assum.push_back(mkLit(var, !b));
+    }
+    return assum;
+}
+
+
 /**
  *
  *
@@ -61,7 +73,105 @@ void PICounter::write_input() {
     model_stream << value << " ";
 }
 
-vector<uint64_t> PICounter::count() {
+vector<uint64_t> PICounter::count_det_compl() {
+    vector<uint64_t> found_preimage_sizes;
+    bool b = true;
+    while (b) {
+        b = count_det_iter(found_preimage_sizes);
+    }
+    return found_preimage_sizes;
+}
+
+
+bool PICounter::count_det_iter(vector<uint64_t> &previous) {
+    vector<Lit> assum;
+
+    if (solver->solve(assum)) {
+        write_output();
+        if (verbose) {
+            std::cout << "Output: " << std::endl;
+            for (auto &var : _output_variables) {
+                std::cout << "\t" << var.variable_name << "[" << var.time << "] = " <<
+                interpret(var.positions) << std::endl;
+            }
+        }
+
+        // we fixate the found output
+        assum = project_model(_output_literals);
+
+        uint64_t pi = 0;
+
+        bool a;
+        do {
+
+            if (verbose) {
+                std::cout << "\t\tInput: " << std::endl;
+                for (auto &var : _input_variables) {
+                    std::cout << "\t\t\t" << var.variable_name << "[" << var.time << "] = " <<
+                    interpret(var.positions) << std::endl;
+                }
+
+                for (auto &var : _seed_variables) {
+                    std::cout << "\t\t\t" << var.variable_name << "[" << var.time << "] = " <<
+                    interpret(var.positions) << std::endl;
+                }
+            }
+
+
+            write_input();
+
+            pi++; // we found the first model, already
+
+            prohibit_project(_input_literals);
+
+            //exclude the found input pattern
+            a = solver->solve(assum);
+        } while (a);
+
+        previous.push_back(pi);
+
+        //optional exclude output
+        prohibit_project(_output_literals);
+        return true;
+    }
+    return false;
+}
+
+bool PICounter::count_det_succ(vector<bool> &closed, vector<uint64_t> count_table) {
+    const uint64_t maximal_output = 1 << _output_literals.size();
+    bool one_open = false;
+    for (uint64_t i = 0; i < maximal_output; i++) {
+        if (closed[i]) continue;
+        auto assumption = create_assumption(_output_literals, i);
+
+        if (solver->solve(assumption)) {
+            count_table[i] += 1;
+            prohibit_project(_input_literals);
+            one_open = true;
+        }
+        else {
+            closed[i] = true;
+        }
+
+    }
+    return one_open;
+}
+
+bool PICounter::count_unstructured(uint64_t limit, vector<bool> &closed, vector<uint64_t> &count_table) {
+    vector<Lit> assum;
+    for (uint64_t i = 0; i < limit; i++) {
+        if (solver->solve(assum)) {
+            uint output = (uint) interpret(_output_literals);
+            prohibit_project(_input_literals);
+            count_table.at(output) += 1;
+        }
+        else {
+            return false;
+        }
+    }
+}
+
+CounterMatrix PICounter::countrand() {
     vector<uint64_t> found_preimage_sizes;
     vector<Lit> assum;
 
@@ -72,7 +182,8 @@ vector<uint64_t> PICounter::count() {
                           _seed_literals.cbegin(), _seed_literals.cend());
 
 
-    CounterMatrix cm(_input_literals.size(), _output_literals.size());
+    CounterMatrix cm(_input_literals.size(),
+                     _output_literals.size());
 
 
     while (solver->solve(assum)) {
@@ -128,8 +239,7 @@ vector<uint64_t> PICounter::count() {
         assum.clear();
     }
 
-
-    return found_preimage_sizes;
+    return cm;
 }
 
 void PICounter::activate(const vector<vector<int>> &clauses, int max_var) {
@@ -145,12 +255,8 @@ void PICounter::activate(const vector<vector<int>> &clauses, int max_var) {
     }
 }
 
-void PICounter::set_solver(SolverInterface *s) {
-    this->solver = s;
-}
 
 void MinisatInterface::ensure_variables(int max_var) {
     while (solver.nVars() <= max_var)
         solver.newVar();
 }
-

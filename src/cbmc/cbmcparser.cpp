@@ -254,4 +254,3 @@ void CbmcDimacsParser::sort_variables() {
     svar = collectVariablesInto(snames, _seed_variables);
 
 }
-

@@ -43,7 +43,7 @@ public:
 
     // Problem specification:
     //
-    Var     newVar    (bool polarity = true, bool dvar = true); // Add a new variable with parameters specifying variable mode.
+    Var     newVar    (bool polarity = true, bool dvar = true); // Add a new variable with parameters specifying variable _mode.
 
     bool    addClause (const vec<Lit>& ps);                     // Add a clause to the solver. 
     bool    addEmptyClause();                                   // Add the empty clause, making the solver contradictory.
@@ -74,9 +74,9 @@ public:
     void    toDimacs     (const char* file, Lit p, Lit q);
     void    toDimacs     (const char* file, Lit p, Lit q, Lit r);
     
-    // Variable mode:
+    // Variable _mode:
     // 
-    void    setPolarity    (Var v, bool b); // Declare which polarity the decision heuristic should use for a variable. Requires mode 'polarity_user'.
+    void    setPolarity    (Var v, bool b); // Declare which polarity the decision heuristic should use for a variable. Requires _mode 'polarity_user'.
     void    setDecisionVar (Var v, bool b); // Declare if a variable should be eligible for selection in the decision heuristic.
 
     // Read state:

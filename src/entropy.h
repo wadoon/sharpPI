@@ -58,6 +58,10 @@ public:
      */
     long double shannon_entropy();
 
+    unsigned long input_count() const { return this->found_pairs;}
+
+    long double min_entropy();
+
 protected:
     long double shannon_entropy(const VectorXd &py, const MatrixXd &p_xy);
 

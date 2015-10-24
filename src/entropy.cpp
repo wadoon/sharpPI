@@ -53,3 +53,8 @@ long double CounterMatrix::shannon_entropy() {
 
     return shannon_entropy(py, p_xy);
 }
+
+long double CounterMatrix::min_entropy() {
+
+    return 0;
+}

@@ -48,7 +48,7 @@ class SimpSolver : public Solver {
     bool    addClause_(      vec<Lit>& ps);
     bool    substitute(Var v, Lit x);  // Replace all occurences of v with x (may cause a contradiction).
 
-    // Variable mode:
+    // Variable _mode:
     // 
     void    setFrozen (Var v, bool b); // If a variable is frozen it will not be eliminated.
     bool    isEliminated(Var v) const;

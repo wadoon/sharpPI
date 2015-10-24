@@ -12,6 +12,7 @@
 #include <cbmcparser.h>
 
 #include "minisat/core/Solver.h"
+#include "entropy.h"
 
 using namespace Minisat;
 using namespace std;
@@ -73,6 +74,9 @@ protected:
 
 class PICounter {
 public:
+
+    PICounter() : solver(nullptr) { }
+
     void prohibit_project(const vector<Var> &solver);
 
     vector<Lit> project_model(const vector<Var> &variables);
@@ -92,6 +96,18 @@ public:
         }
     }
 
+    vector<Var> &get_seed_literals() {
+        return _seed_literals;
+    }
+
+    vector<Var> &get_output_literals() {
+        return _output_literals;
+    }
+
+    vector<Var> &get_input_literals() {
+        return _input_literals;
+    }
+
     void set_output_literals(const vector<uint> &output_variables) {
         _output_literals.clear();
         for (uint i : output_variables) {
@@ -103,14 +119,32 @@ public:
 
     void set_verbose(bool b) { this->verbose = b; }
 
-    std::vector<uint64_t> count();
 
-    void set_solver(SolverInterface *);
+    vector<uint64_t> count_det_compl();
 
-    uint64_t  interpret(vector<uint> variables) {
-        uint64_t  value = 0;
+    bool count_det_iter(vector<uint64_t> &previous);
 
-        for (unsigned long i = variables.size() - 1; i >= 0; --i) {
+    bool count_det_succ(vector<bool> &closed, vector<uint64_t> count_table);
+
+    bool count_unstructured(uint64_t limit, vector<bool> &closed, vector<uint64_t> &count_table);
+
+
+    CounterMatrix countrand();
+
+
+    void set_solver(SolverInterface *s) {
+        if (this->solver != nullptr)
+            delete this->solver;
+        this->solver = s;
+    }
+
+    /**
+     *
+     */
+    uint64_t interpret(vector<uint> variables) {
+        uint64_t value = 0;
+
+        for (long i = variables.size() - 1; i >= 0; --i) {
             uint v = variables.at(i);
 
             if (v == 0) {
@@ -126,9 +160,12 @@ public:
         return value;
     }
 
+    /**
+     *
+     */
     uint64_t interpret(vector<Var> variables) {
-        uint64_t  value = 0;
-        for (unsigned long i = variables.size() - 1; i >= 0; --i) {
+        uint64_t value = 0;
+        for (long i = variables.size() - 1; i >= 0; --i) {
             Var v = variables.at(i);
             int q = solver->model_value(v) == l_True ? 1 : 0;
             value = (value << 1) | q;
