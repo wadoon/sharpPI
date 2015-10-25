@@ -1,5 +1,3 @@
 build_local:
   type: build
-  tags:
-    - linux
   script: "mkdir build && cd build && cmake .. && make -j 4"
