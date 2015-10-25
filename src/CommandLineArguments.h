@@ -10,14 +10,9 @@
 #include <string>
 #include "main.h"
 
-/*
-       ┌─────────────────────────┬───────────────┬───────────────────────────┐
-       │Interface                │ Attribute     │ Value                     │
-       ├─────────────────────────┼───────────────┼───────────────────────────┤
-       │getopt(), getopt_long(), │ Thread safety │ MT-Unsafe race:getopt env │
-       │getopt_long_only()       │               │                           │
-       └─────────────────────────┴───────────────┴───────────────────────────┘
-*/
+#include <boost/program_options.hpp>
+
+namespace po = boost::program_options;
 
 enum OperationMode {
     OPERATION_MODE_DETERMINISTIC, OPERATION_MODE_DETERMINISTIC_ITERATIVE, OPERATION_MODE_DETERMINISTIC_SHUFFLE,
@@ -26,7 +21,7 @@ enum OperationMode {
 
 class CommandLineArguments {
 public:
-    CommandLineArguments() : _verbose(false), _help(false), _output_model_filename("model.csv"), _mode(OPERATION_MODE_DETERMINISTIC) { }
+    CommandLineArguments();
 
     void initialize(int argc, char **argv);
 
@@ -34,13 +29,19 @@ public:
 
     bool verbose() const { return _verbose; }
 
+/**
+ *
+ */
     std::vector<std::string> &input_variables() { return _input_variables; }
 
+/**
+ *
+ */
     std::vector<std::string> &output_variables() { return _output_variables; }
 
     std::vector<std::string> &seed_variables() { return _seed_variables; }
 
-    OperationMode mode() {return _mode;}
+    OperationMode mode() { return (OperationMode) _mode; }
 
     std::string &input_filename() { return _input_filename; };
 
@@ -49,12 +50,21 @@ public:
     void printUsage();
 
 private:
-    std::vector<std::string> _input_variables, _output_variables,_seed_variables;
-    OperationMode _mode;
+    po::options_description general, ndet;
+    po::positional_options_description p;
+    po::variables_map vm;
+
+    int inputfile = 0;
+
+    //---
+
+    std::vector<std::string> _input_variables, _output_variables, _seed_variables;
+    /*OperationMode*/ uint _mode;
     std::string _input_filename;
     bool _verbose;
     bool _help;
     std::string _output_model_filename;
+    uint _limit;
 };
 
 

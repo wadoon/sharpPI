@@ -14,7 +14,7 @@ const std::string SHARP_PI_DATE = "2015-10-24";
 const std::vector<std::string> COPYRIGHT = {
         "(c) 2015 Alexander Weigl <weigl@kit.edu>",
         "      Application-Oriented Formal Verification",
-        "      Institute for Theoretical Informatics",
-        "       Karlsruhe Institute for Technology (KIT)"};
+        "        Institute for Theoretical Informatics",
+        "          Karlsruhe Institute for Technology (KIT)"};
 
 #endif //SHARPPIC_MAIN_H
