@@ -1,4 +1,4 @@
-image: andystanton/gcc-cmake-gl
+image: kaskada/cmake-gcc5
 
 build_local:
   type: build
