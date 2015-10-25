@@ -1,7 +1,4 @@
-before_script:
-  - apt-get update -y
-  - apt-get install cmake libboost-program_opts-dev
-
+image: andystanton/gcc-cmake-gl
 
 build_local:
   type: build
