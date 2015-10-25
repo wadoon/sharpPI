@@ -68,6 +68,16 @@ Operation Modes
 4. Non-Determinstic
 
 
+COPYRIGHT
+=========
+
+
+    (c) 2015 Alexander Weigl <weigl@kit.edu>
+          Application-Oriented Formal Verification
+            Institute for Theoretical Informatics
+             Karlsruhe Institute for Technology (KIT)
+
+
 PROBLEMS
 ========
 

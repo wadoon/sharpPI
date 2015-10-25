@@ -14,6 +14,7 @@ typedef std::vector<std::string> StringList;
 
 CommandLineArguments::CommandLineArguments()
         : _verbose(false), _help(false), _output_model_filename("model.csv"),
+          _statistics(false),
           _mode(OPERATION_MODE_DETERMINISTIC),
 
           general("General"),
@@ -22,16 +23,19 @@ CommandLineArguments::CommandLineArguments()
     general.add_options()
             ("help,h", "produce help message")
             ("verbose,v", "verbose mode")
-            ("limit,l", po::value<uint>(&_limit)->value_name("INT"), "limit rounds")
+            ("stat", "enable statistics")
+            ("limit,l", po::value<uint>(&_limit)->value_name("INT")->default_value(10), "limit rounds")
             ("mode,m", po::value<uint>(&_mode)->value_name("INT"), "mode")
             ("input,i", po::value<StringList>(&_input_variables)->required()->value_name("VARIABLE"), "input")
             ("output,o", po::value<StringList>(&_output_variables)->required()->value_name("VARIABLE"), "output")
             //positional
             ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
 
-    ndet.add_options()("s", po::value<StringList>(&_seed_variables)->value_name("variable"), "seed");
-    general.add(ndet);
 
+    ndet.add_options()("s", po::value<StringList>(&_seed_variables)->value_name("variable"), "seed");
+    ndet.add_options()("density", "density values for each output");
+
+    general.add(ndet);
 
     p.add("filename", 1);
 }
@@ -44,7 +48,10 @@ void CommandLineArguments::initialize(int argc, char *argv[]) {
                         .options(general)
                         .run(), vm);
 
+
+        _statistics = vm.count("stat");
         _verbose = vm.count("verbose");
+
         if (!vm.count("help")) { // do not signal errors if help is provided
             po::notify(vm);
         } else {

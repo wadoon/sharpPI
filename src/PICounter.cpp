@@ -6,14 +6,12 @@
 #include <iostream>
 #include "entropy.h"
 
-
-vector<Lit> create_assumption(const vector<Var> &vars, uint64_t value) {
-    vector<Lit> assum;
+void create_assumption(const vector<Var> &vars, uint64_t value, vector<Lit> &assum) {
     for (Var var : vars) {
-        bool b = (bool) var & 1;
-        assum.push_back(mkLit(var, !b));
+        bool b = (value & 1) > 0;
+        assum.push_back(mkLit(var, b));
+        value >>= 1;
     }
-    return assum;
 }
 
 
@@ -137,12 +135,15 @@ bool PICounter::count_det_iter(vector<uint64_t> &previous) {
     return false;
 }
 
-bool PICounter::count_det_succ(vector<bool> &closed, vector<uint64_t> count_table) {
+bool PICounter::count_det_succ(vector<bool> &closed, vector<uint64_t> &count_table) {
     const uint64_t maximal_output = 1 << _output_literals.size();
     bool one_open = false;
+
+    vector<Lit> assumption;
     for (uint64_t i = 0; i < maximal_output; i++) {
-        if (closed[i]) continue;
-        auto assumption = create_assumption(_output_literals, i);
+        if (closed[i])
+            continue;
+        create_assumption(_output_literals, i, assumption); // TODO optimize reduce copy
 
         if (solver->solve(assumption)) {
             count_table[i] += 1;
@@ -153,6 +154,7 @@ bool PICounter::count_det_succ(vector<bool> &closed, vector<uint64_t> count_tabl
             closed[i] = true;
         }
 
+        assumption.clear();
     }
     return one_open;
 }
@@ -169,6 +171,7 @@ bool PICounter::count_unstructured(uint64_t limit, vector<bool> &closed, vector<
             return false;
         }
     }
+    return true;
 }
 
 CounterMatrix PICounter::countrand() {

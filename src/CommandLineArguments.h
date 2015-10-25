@@ -45,7 +45,11 @@ public:
 
     std::string &input_filename() { return _input_filename; };
 
-    std::string &output_model_filename() { return _output_model_filename; }
+    const std::string &output_model_filename() const { return _output_model_filename; }
+
+    uint limit() const { return _limit; };
+
+    bool statistics() const { return _statistics; }
 
     void printUsage();
 
@@ -65,6 +69,7 @@ private:
     bool _help;
     std::string _output_model_filename;
     uint _limit;
+    bool _statistics;
 };
 
 

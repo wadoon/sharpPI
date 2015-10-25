@@ -124,7 +124,7 @@ public:
 
     bool count_det_iter(vector<uint64_t> &previous);
 
-    bool count_det_succ(vector<bool> &closed, vector<uint64_t> count_table);
+    bool count_det_succ(vector<bool> &closed, vector<uint64_t> &count_table);
 
     bool count_unstructured(uint64_t limit, vector<bool> &closed, vector<uint64_t> &count_table);
 

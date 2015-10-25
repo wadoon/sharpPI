@@ -14,7 +14,7 @@ long double CounterMatrix::shannon_entropy(const VectorXd &py, const MatrixXd &p
         for (int x = 0; x < p_xy.rows(); ++x) {
             long double Pxy = p_xy(x, y);
             if (Pxy != 0 && Pxy != 1) {
-                tmp = tmp + Pxy * (log2(1.0 / Pxy));
+                tmp = tmp + Pxy * (-log2(Pxy));
             }
         }
 
