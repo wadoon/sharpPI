@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.3)
-project(sharpPIC)
+project(sharpPI)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-deprecated-declarations")
 
@@ -20,5 +20,5 @@ add_subdirectory(minisat)
 include_directories(minisat cbmc)
 
 set(SOURCE_FILES main.cpp util.cpp termbox.cpp CommandLineArguments.cpp PICounter.cpp PICounter.h entropy.cpp entropy.h)
-add_executable(sharpPIC ${SOURCE_FILES})
-target_link_libraries(sharpPIC cbmc minisat-lib-static ${Boost_LIBRARIES})
+add_executable(sharpPI ${SOURCE_FILES})
+target_link_libraries(sharpPI cbmc minisat-lib-static ${Boost_LIBRARIES})

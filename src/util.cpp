@@ -85,4 +85,34 @@ double get_cpu_time() {
     return (double) usage->ru_utime.tv_sec + (double) usage->ru_utime.tv_usec * .000001;
 }
 
+template<typename T>
+T sum_buckets(vector<T> buckets) {
+    T sum = 0;
+    for(auto i : buckets) {
+        sum += i;
+    }
+    return sum;
+}
+
+template uint64_t sum_buckets<uint64_t>(vector<uint64_t> buckets); // explicit instantiation.
+
+
+long double shannon_entropy_max(uint64_t SI, uint64_t inputs, uint64_t outputs) {
+    long double sum = 0;
+
+    if (inputs > outputs) {
+        long double q = inputs / outputs;
+        long double residum = inputs - q;
+
+        long double item_in_box = floor(q);
+
+        //assert(residum < outputs);
+
+        sum = residum * (item_in_box + 1) * log2(item_in_box + 1);
+        sum += (outputs - residum) * (item_in_box * log2(item_in_box));
+    }
+    return 1.0 / SI * sum;
+}
+
+
 #endif
