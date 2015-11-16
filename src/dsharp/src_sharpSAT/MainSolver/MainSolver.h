@@ -272,7 +272,7 @@ public:
 	// class destructor
 	~CMainSolver();
 
-	void solve(const char *lpstrFileName);
+	uint64_t solve(const char *lpstrFileName);
 
 	void setTimeBound(long int i)
 	{

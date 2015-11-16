@@ -3,10 +3,10 @@
 #ifndef ANALYZERDATA_H
 #define ANALYZERDATA_H
 
-#include <RealNumberTypes.h>
+#include "../RealNumberTypes.h"
 
 //#include <Interface/Assignment.h>
-#include "../src_sharpSAT/Basics.h"
+#include "src_sharpSAT/Basics.h"
 
 #include <vector>
 

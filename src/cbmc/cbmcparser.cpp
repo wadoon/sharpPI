@@ -4,22 +4,25 @@
 
 #include "cbmcparser.h"
 #include <iostream>
-#include <fstream>
-#include <regex>
-#include <map>
-#include <err.h>
+#include <boost/regex.hpp>
 
+using namespace boost;
 using namespace std;
+
 
 const string DIGIT_REGEX = R"(-?(\d+))";
 
-const std::string REGEX_NORMAL =
+const std::string REGEX_NORMAL_STR =
         R"(^c (c::)?(.*?)::(.*?)::(.*?)!(\d*)@(\d*)#(\d*) (.*)$)";
 
-const string REGEX_SHORT = // boolean variables!!!!
+const string REGEX_SHORT_STR = // boolean variables!!!!
         R"(^c (\d*) (c::)?(.*?)::(.*?)::(.*?)!(\d*)@(\d*)#(\d*)$)";
 
-void extractNormalLine(vector<CBMCVariable> &variables, const smatch &match);
+const regex REGEX_NORMAL(REGEX_NORMAL_STR);
+const regex REGEX_SHORT(REGEX_SHORT_STR);
+
+
+void extractNormalLine(vector<CBMCVariable> &variables, const cmatch &match);
 
 void collectLastUpdate(const vector<CBMCVariable> &vars, const string &name, vector<CBMCVariable> &variables_ids) {
     int max_time = -1;
@@ -101,7 +104,7 @@ std::set<uint> get_literals(const vector<uint> &pos) {
     return a;
 }
 
-CBMCVariable extractNormalLine(const smatch &match) {
+CBMCVariable extractNormalLine(const cmatch &match) {
     CBMCVariable variable;
 
     variable.function_name = match[2].str();
@@ -122,7 +125,7 @@ CBMCVariable extractNormalLine(const smatch &match) {
 }
 
 
-CBMCVariable extractBooleanLine(const smatch &match) {
+CBMCVariable extractBooleanLine(const cmatch &match) {
     CBMCVariable variable;
 
     variable.function_name = match[3].str();
@@ -144,7 +147,7 @@ CBMCVariable extractBooleanLine(const smatch &match) {
     return variable; //variables.push_back(variable);
 }
 
-vector<CBMCVariable> parseCBMCFile(const char *filename) {
+/*vector<CBMCVariable> parseCBMCFile(const char *filename) {
     vector<CBMCVariable> variables;
 
     ifstream input(filename);
@@ -173,62 +176,24 @@ vector<CBMCVariable> parseCBMCFile(const char *filename) {
     }
 
     return variables;
-}
-
+}*/
 
 void CbmcDimacsParser::read() {
-    ifstream input(input_file);
-    max_var = 0;
-
-    if (!input.is_open()) {
-        err(1, "%s", input_file.c_str());
-        wcout << "Could not open file" << endl;
-    }
-
-    regex rgx1(REGEX_NORMAL);
-    regex rgx2(REGEX_SHORT);
-    smatch match;
-
-
-    for (string line; getline(input, line);) {
-        // skip empty lines or non comments
-        if (line.length() == 0) {
-            continue;
-        }
-
-        if (line[0] == 'p')
-            continue;
-
-        if (line[0] == 'c') {
-            if (regex_match(line, match, rgx1)) {
-                variables.push_back(
-                        extractNormalLine(match));
-            }
-
-            if (regex_match(line, match, rgx2)) {
-                variables.push_back(extractBooleanLine(match));
-
-            }
-        } else {
-            vector<int> clause;
-            stringstream in(line);
-            int x = 0;
-            while (!in.eof()) {
-                in >> x;
-                if (x == 0)
-                    break;
-
-                int v = abs(x);
-
-                this->max_var = max(v, max_var);
-
-                clause.push_back(x);
-            }
-            this->_clauses.push_back(move(clause));
-        }
-    }
-
+    DimacsParser::read();
     sort_variables();
+}
+
+bool CbmcDimacsParser::handle_comment(const string &line) {
+    cmatch match;
+
+    if (regex_match(line.c_str(), match, REGEX_NORMAL)) {
+        variables.push_back(
+                extractNormalLine(match));
+    }
+
+    if (regex_match(line.c_str(), match, REGEX_SHORT)) {
+        variables.push_back(extractBooleanLine(match));
+    }
 }
 
 std::vector<uint> CbmcDimacsParser::collectVariablesInto(
@@ -252,5 +217,4 @@ void CbmcDimacsParser::sort_variables() {
     ivar = collectVariablesInto(inames, _input_variables);
     ovar = collectVariablesInto(onames, _output_variables);
     svar = collectVariablesInto(snames, _seed_variables);
-
 }

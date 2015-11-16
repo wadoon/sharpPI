@@ -16,7 +16,8 @@ namespace po = boost::program_options;
 
 enum OperationMode {
     OPERATION_MODE_DETERMINISTIC, OPERATION_MODE_DETERMINISTIC_ITERATIVE, OPERATION_MODE_DETERMINISTIC_SHUFFLE,
-    OPERATION_MODE_DETERMINISTIC_SUCCESSIVE, OPERATION_MODE_NDETERMINISTIC
+    OPERATION_MODE_DETERMINISTIC_SUCCESSIVE, OPERATION_MODE_NDETERMINISTIC,
+    OPERATION_MODE_SHARPSAT
 };
 
 class CommandLineArguments {
@@ -29,23 +30,17 @@ public:
 
     bool verbose() const { return _verbose; }
 
-/**
- *
- */
     std::vector<std::string> &input_variables() { return _input_variables; }
 
-/**
- *
- */
-    std::vector<std::string> &output_variables() { return _output_variables; }
+    std::vector<std::string> &output_variables()  { return _output_variables; }
 
-    std::vector<std::string> &seed_variables() { return _seed_variables; }
+    std::vector<std::string> &seed_variables()  { return _seed_variables; }
 
-    OperationMode mode() { return (OperationMode) _mode; }
+    OperationMode mode() const { return (OperationMode) _mode; }
 
-    std::string &input_filename() { return _input_filename; };
+    std::string &input_filename()  { return _input_filename; };
 
-    const std::string &output_model_filename() const { return _output_model_filename; }
+    const std::string &output_model_filename()  { return _output_model_filename; }
 
     uint limit() const { return _limit; };
 

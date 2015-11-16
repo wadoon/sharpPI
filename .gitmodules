@@ -1,0 +1,3 @@
+[submodule "src/glucose"]
+	path = src/glucose
+	url = git@github.com:wadoon/glucose.git

@@ -6,12 +6,18 @@
 #ifndef SHARPPIC_UTIL_H
 #define SHARPPIC_UTIL_H
 
-#include "minisat/utils/System.h"
 #include <string>
 #include <vector>
 #include <cmath>
 #include <sstream>
 
+#ifdef GLUCOSE
+#include "glucose/core/Solver.h"
+using namespace Glucose;
+#else
+#include "minisat/core/Solver.h"
+using namespace Minisat;
+#endif
 
 using namespace std;
 

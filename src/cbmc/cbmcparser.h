@@ -1,11 +1,8 @@
 //
 // Created by weigl on 29.09.15.
 //
-#include <string>
-#include <vector>
-#include <fstream>
-#include <zlib.h>
-#include <set>
+
+#include "dimacsparser.h"
 
 #ifndef MINISAT_CBMCPARSER_H
 #define MINISAT_CBMCPARSER_H
@@ -24,30 +21,28 @@ struct CBMCVariable {
 };
 
 
-class CbmcDimacsParser {
+class CbmcDimacsParser : public DimacsParser {
 public:
     CbmcDimacsParser(string &input_file, vector<string> &input_names,
                      vector<string> &seed_names,
                      vector<string> &output_names) :
-            input_file(input_file),
+            DimacsParser(input_file),
             inames(input_names),
             snames(seed_names),
             onames(output_names) { }
 
 
-    vector<vector<int>> &clauses() { return _clauses; }
 
-    void read();
+    virtual void read();
 
     void sort_variables();
 
     vector<uint> &ovars() { return ovar; }
 
     vector<uint> &ivars() { return ivar; }
+
     vector<uint> &svars() { return svar; }
 
-
-    int max_var;
 
     const vector<CBMCVariable> &output_variables() const {
         return _output_variables;
@@ -63,9 +58,10 @@ public:
     }
 
 
+    bool handle_comment(const std::string &line) override;
+
 private:
     vector<uint> ivar, ovar, svar;
-    std::string input_file;
 
     std::vector<CBMCVariable> _output_variables;
     std::vector<CBMCVariable> _input_variables;
@@ -73,7 +69,6 @@ private:
 
     vector<string> inames, onames, snames;
 
-    vector<vector<int>> _clauses;
 
     vector<CBMCVariable> variables;
 

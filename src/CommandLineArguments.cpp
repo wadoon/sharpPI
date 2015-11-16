@@ -26,8 +26,8 @@ CommandLineArguments::CommandLineArguments()
             ("stat", "enable statistics")
             ("limit,l", po::value<uint>(&_limit)->value_name("INT")->default_value(10), "limit rounds")
             ("mode,m", po::value<uint>(&_mode)->value_name("INT"), "mode")
-            ("input,i", po::value<StringList>(&_input_variables)->required()->value_name("VARIABLE"), "input")
-            ("output,o", po::value<StringList>(&_output_variables)->required()->value_name("VARIABLE"), "output")
+            ("input,i", po::value<StringList>(&_input_variables)->value_name("VARIABLE"), "input")
+            ("output,o", po::value<StringList>(&_output_variables)->value_name("VARIABLE"), "output")
             //positional
             ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
 
@@ -113,6 +113,8 @@ void CommandLineArguments::printUsage() {
     << ": Determinstic SHUFFLE (find each input/output pair, limitation possible)\n"
     << "\t" << OPERATION_MODE_DETERMINISTIC_SUCCESSIVE << ": Determinstic SUCCESSIVE ()\n"
     << "\t" << OPERATION_MODE_NDETERMINISTIC << ": Non-Determinstic\n\n"
+    << "\t" << OPERATION_MODE_SHARPSAT << ": Normal #SAT based on `cr` entries\n\n"
+
 
     << "\n\nVersion: " << SHARP_PI_VERSION << " / " << SHARP_PI_DATE << endl << endl
     << TB.create_box(COPYRIGHT, "COPYRIGHT") << std::endl;

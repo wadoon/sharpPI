@@ -3,8 +3,8 @@
 #include <ctime> // To seed random generator
 #include <sys/time.h> // To seed random generator
 //include shared files
-#include <SomeTime.h>
-#include <Interface/AnalyzerData.h>
+#include "SomeTime.h"
+#include "Interface/AnalyzerData.h"
 
 #include "MainSolver/MainSolver.h"
 #include "Basics.h"

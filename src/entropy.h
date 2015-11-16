@@ -6,10 +6,11 @@
 #define SHARPPIC_ENTROPY_H
 
 
-#include <Eigen/Core>
 #include <vector>
 #include <cmath>
 #include <fstream>
+
+#include <Eigen/Core>
 
 using Eigen::MatrixXd;
 using Eigen::MatrixXi;
