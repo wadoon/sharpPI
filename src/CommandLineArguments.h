@@ -15,8 +15,11 @@
 namespace po = boost::program_options;
 
 enum OperationMode {
-    OPERATION_MODE_DETERMINISTIC, OPERATION_MODE_DETERMINISTIC_ITERATIVE, OPERATION_MODE_DETERMINISTIC_SHUFFLE,
-    OPERATION_MODE_DETERMINISTIC_SUCCESSIVE, OPERATION_MODE_NDETERMINISTIC,
+    OPERATION_MODE_DETERMINISTIC,
+   	OPERATION_MODE_DETERMINISTIC_ITERATIVE,
+   	OPERATION_MODE_DETERMINISTIC_SHUFFLE,
+    OPERATION_MODE_DETERMINISTIC_SUCCESSIVE,
+   	OPERATION_MODE_NDETERMINISTIC,
     OPERATION_MODE_SHARPSAT
 };
 
@@ -43,6 +46,7 @@ public:
     const std::string &output_model_filename()  { return _output_model_filename; }
 
     uint limit() const { return _limit; };
+    uint max_models() const { return _max_models; };
 
     bool statistics() const { return _statistics; }
 
@@ -64,6 +68,7 @@ private:
     bool _help;
     std::string _output_model_filename;
     uint _limit;
+    uint _max_models;
     bool _statistics;
 };
 

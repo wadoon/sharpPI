@@ -15,7 +15,7 @@
 #include "utils/System.h"
 
 
-#include "pstreams-0.8.1/pstream.h"
+//#include "pstreams-0.8.1/pstream.h"
 
 
 #ifdef GLUCOSE
@@ -156,7 +156,7 @@ public:
 
     vector<uint64_t> count_det_compl();
 
-    uint64_t count_sat();
+    uint64_t count_sat(uint64_t max_count = -1  );
 
     bool count_det_iter(vector<uint64_t> &previous);
 

@@ -17,28 +17,29 @@ CommandLineArguments::CommandLineArguments()
           _statistics(false),
           _mode(OPERATION_MODE_DETERMINISTIC),
 
-          general("General"),
-          ndet("Non-determinism") {
+		  general("General"),
+		  ndet("Non-determinism") {
 
-    general.add_options()
-            ("help,h", "produce help message")
-            ("verbose,v", "verbose mode")
-            ("stat", "enable statistics")
-            ("limit,l", po::value<uint>(&_limit)->value_name("INT")->default_value(10), "limit rounds")
-            ("mode,m", po::value<uint>(&_mode)->value_name("INT"), "mode")
-            ("input,i", po::value<StringList>(&_input_variables)->value_name("VARIABLE"), "input")
-            ("output,o", po::value<StringList>(&_output_variables)->value_name("VARIABLE"), "output")
-            //positional
-            ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
+			  general.add_options()
+				  ("help,h", "produce help message")
+				  ("verbose,v", "verbose mode")
+				  ("stat", "enable statistics")
+				  ("limit,l", po::value<uint>(&_limit)->value_name("INT")->default_value(10), "limit rounds")
+				  ("mode,m", po::value<uint>(&_mode)->value_name("INT"), "mode")
+				  (",n", po::value<uint>(&_max_models)->value_name("INT"), "maximum count on models that should be found")
+				  ("input,i", po::value<StringList>(&_input_variables)->value_name("VARIABLE"), "input")
+				  ("output,o", po::value<StringList>(&_output_variables)->value_name("VARIABLE"), "output")
+				  //positional
+				  ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
 
 
-    ndet.add_options()("s", po::value<StringList>(&_seed_variables)->value_name("variable"), "seed");
-    ndet.add_options()("density", "density values for each output");
+			  ndet.add_options()("s", po::value<StringList>(&_seed_variables)->value_name("variable"), "seed");
+			  ndet.add_options()("density", "density values for each output");
 
-    general.add(ndet);
+			  general.add(ndet);
 
-    p.add("filename", 1);
-}
+			  p.add("filename", 1);
+		  }
 
 void CommandLineArguments::initialize(int argc, char *argv[]) {
     try {

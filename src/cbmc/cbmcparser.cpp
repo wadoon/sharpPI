@@ -205,9 +205,14 @@ std::vector<uint> CbmcDimacsParser::collectVariablesInto(
     collectVariables(variables, names, collected_variables);
 
     for (auto &var : collected_variables) {
+		/*  rewrite for non c++11 (gcc4.8) compatibility
         literals.insert(literals.cend(),
                         var.variables.cbegin(),
                         var.variables.cend());
+						*/
+		for(auto v : var.variables) {
+			literals.push_back(v);
+		}
     }
 
     return literals;

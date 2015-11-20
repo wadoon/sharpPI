@@ -182,15 +182,27 @@ CounterMatrix PICounter::countrand() {
     vector<Lit> assum;
 
     vector<Var> seed_and_input;
-    seed_and_input.insert(seed_and_input.cbegin(), _input_literals.cbegin(),
-                          _input_literals.cend());
-    seed_and_input.insert(seed_and_input.cbegin(), _seed_literals.cbegin(),
-                          _seed_literals.cend());
 
-    CounterMatrix cm(_input_literals.size(), _output_literals.size());
+	for(auto& v: _input_literals) {
+		seed_and_input.push_back(v);
+	}
 
-    while (solver->solve(assum)) {
-        write_output();
+	for(auto& v: _seed_literals) {
+		seed_and_input.push_back(v);
+	}
+
+	/*  
+		seed_and_input.insert(seed_and_input.cbegin(), _input_literals.cbegin(),
+		_input_literals.cend());
+
+		seed_and_input.insert(seed_and_input.cbegin(), _seed_literals.cbegin(),
+		_seed_literals.cend());
+		*/
+
+	CounterMatrix cm(_input_literals.size(), _output_literals.size());
+
+	while (solver->solve(assum)) {
+		write_output();
         if (verbose) {
             std::cout << "Output: " << std::endl;
             for (auto &var : _output_variables) {
@@ -264,7 +276,7 @@ void MinisatInterface::ensure_variables(int max_var) {
         solver.newVar();
 }
 
-uint64_t PICounter::count_sat() {
+uint64_t PICounter::count_sat( uint64_t max_count ) {
     uint64_t pi = 0;
 
     if (_output_literals.size() == 0) {
@@ -275,6 +287,9 @@ uint64_t PICounter::count_sat() {
     while (solver->solve()) {
         ++pi;
         prohibit_project(_output_literals);
+
+		if(pi >= max_count) 
+			break;
     }
     return pi;
 }

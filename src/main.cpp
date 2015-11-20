@@ -366,7 +366,7 @@ int count_sat(CommandLineArguments &cli) {
 
     counter.set_verbose(cli.verbose());
 
-    auto count = counter.count_sat();
+    auto count = counter.count_sat( cli.max_models()  );
     cout << "Model count: " << count << endl;
     return 0;
 }
