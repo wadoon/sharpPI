@@ -26,7 +26,7 @@ CommandLineArguments::CommandLineArguments()
 				  ("stat", "enable statistics")
 				  ("limit,l", po::value<uint>(&_limit)->value_name("INT")->default_value(10), "limit rounds")
 				  ("mode,m", po::value<uint>(&_mode)->value_name("INT"), "mode")
-				  (",n", po::value<uint>(&_max_models)->value_name("INT"), "maximum count on models that should be found")
+				  (",n", po::value<uint>(&_max_models)->value_name("INT")->default_value(-1), "maximum count on models that should be found")
 				  ("input,i", po::value<StringList>(&_input_variables)->value_name("VARIABLE"), "input")
 				  ("output,o", po::value<StringList>(&_output_variables)->value_name("VARIABLE"), "output")
 				  //positional
