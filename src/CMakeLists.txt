@@ -11,7 +11,7 @@ ENDIF()
 
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-find_package( Boost COMPONENTS program_options regex REQUIRED )
+find_package( Boost COMPONENTS program_options regex filesystem system REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
 add_subdirectory(cbmc)
@@ -22,7 +22,7 @@ add_subdirectory(dsharp)
 set(SOURCE_FILES main.cpp util.cpp termbox.cpp CommandLineArguments.cpp PICounter.cpp PICounter.h entropy.cpp entropy.h)
 
 #-- --------------------------------------------------------------------------------------------------------------------
-add_executable(sharpPI ${SOURCE_FILES} sharpsat.cpp sharpsat.h)
+add_executable(sharpPI ${SOURCE_FILES} sharpsat.cpp sharpsat.h sat.cpp sat.h)
 target_include_directories(sharpPI PUBLIC "minisat" "cbmc" "dsharp" "dsharp/shared")
 target_link_libraries(sharpPI cbmc minisat-lib-static dsharp ${Boost_LIBRARIES})
 

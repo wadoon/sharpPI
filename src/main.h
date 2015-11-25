@@ -8,7 +8,7 @@
 #include <vector>
 #include <string>
 
-const std::string SHARP_PI_VERSION = "0.8.2";
+const std::string SHARP_PI_VERSION = "0.9.0";
 const std::string SHARP_PI_DATE = "2015-11-24";
 
 const std::vector<std::string> COPYRIGHT = {

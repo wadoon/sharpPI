@@ -133,6 +133,38 @@ bool PICounter::count_det_iter(vector<uint64_t> &previous) {
     return false;
 }
 
+#include "sharpsat.h"
+
+bool PICounter::count_det_iter_sharp(vector<uint64_t> &previous) {
+    vector<Lit> assum;
+
+    DSharpSAT sharpSAT;
+
+
+    if (solver->solve(assum)) {
+        write_output();
+        if (verbose) {
+            std::cout << "Output: " << std::endl;
+            for (auto &var : _output_variables) {
+                std::cout << "\t" << var.variable_name << "[" << var.time
+                << "] = " << interpret(var.positions) << std::endl;
+            }
+        }
+
+        // we fixate the found output
+        assum = project_model(_output_literals);
+
+        uint64_t pi = sharpSAT(solver, assum, _input_literals);
+
+        previous.push_back(pi);
+
+        //optional exclude output
+        prohibit_project(_output_literals);
+        return true;
+    }
+    return false;
+}
+
 bool PICounter::count_det_succ(vector<bool> &closed,
                                vector<uint64_t> &count_table) {
     const uint64_t maximal_output = 1 << _output_literals.size();

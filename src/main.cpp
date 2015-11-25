@@ -339,6 +339,66 @@ int det_succ(const CommandLineArguments &cli, PICounter &counter) {
     return 0;
 }
 
+/**
+ *
+ */
+int det_iter_sharp(const CommandLineArguments &cli, PICounter &counter) {
+    cout << "Operation Mode: Deterministic ITER" << endl;
+    //Assume we have 2^|INPUTVARS| possible inputs
+    unsigned long int SI = (unsigned long) (1
+                                            << counter.get_input_literals().size());
+    unsigned long int SO = (unsigned long) (1
+                                            << counter.get_output_literals().size());
+
+    vector<uint64_t> ret(SI);
+
+    bool b = true;
+    for (int k = 1; k <= cli.limit() && b; k++) {
+
+        double start = get_cpu_time();
+        b = counter.count_det_iter_sharp(ret);
+        double end = get_cpu_time();
+
+        if (cli.verbose())
+            cout << k << "# Result: " << ret << "\n";
+
+        auto shannon_e = shannon_entropy(SI, ret);
+        auto min_e = min_entropy(SI, ret.size());
+        auto leakage = log2(SI) - shannon_entropy(SI, ret);
+
+        vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
+                                          {
+                                           "Shannon Entropy H(h|l)", atos(shannon_e)},
+                                          {"Min Entropy",
+                                                                     atos(min_e)},
+                                          {"Leakage",                atos(leakage)},};
+
+        cout << TB.create_table(results) << endl;
+
+        if (cli.statistics()) {
+            statistics.num_of_iteration = k;
+            statistics.number_of_inputs = sum_buckets(ret);
+            statistics.number_of_outputs = ret.size();
+            statistics.cpu_time_consumed = end - start;
+            statistics.shannon_entropy.guess = shannon_e;
+
+            long double lower_guess = 1.0 / SI
+                                      * (SI - statistics.number_of_inputs)
+                                      * log2((long double) (SI - statistics.number_of_inputs));
+
+            statistics.shannon_entropy.lower_bound = shannon_e + lower_guess;
+
+            statistics.shannon_entropy.lower_bound = shannon_e
+                                                     + shannon_entropy_max(SI, SI - statistics.number_of_inputs,
+                                                                           SO - statistics.number_of_outputs);
+
+            statistics.min_entropy.guess = 0;
+            statistics.write();
+        }
+    }
+    return 0;
+}
+
 
 /**
  *
@@ -366,7 +426,7 @@ int count_sat(CommandLineArguments &cli) {
 
     counter.set_verbose(cli.verbose());
 
-    auto count = counter.count_sat( cli.max_models()  );
+    auto count = counter.count_sat(cli.max_models());
     cout << "Model count: " << count << endl;
     return 0;
 }
@@ -426,6 +486,9 @@ int run(CommandLineArguments &cli) {
 
         case OPERATION_MODE_DETERMINISTIC_SHUFFLE:
             return det_shuffle(cli, counter);
+
+        case OPERATION_MODE_DETERMINISTIC_ITERATIVE_SHARP:
+            return det_iter_sharp(cli, counter);
     }
 
     if (cli.statistics()) {

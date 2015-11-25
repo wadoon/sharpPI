@@ -26,83 +26,8 @@ using namespace Minisat;
 
 using namespace std;
 
-class SolverInterface {
-public:
-    SolverInterface() {
-    };
 
-    virtual ~SolverInterface() {
-    };
-
-    virtual void add_clause(const vector<Lit> &clause) = 0;
-
-    virtual bool solve(const vector<Lit> &assumptions) = 0;
-
-    virtual bool solve() = 0;
-
-    virtual int num_variables() = 0;
-
-    virtual lbool model_value(Var v) = 0;
-
-    virtual void ensure_variables(int max_var) = 0;
-};
-
-template<typename T=Lit>
-inline Var convert(const vector<T> &a, vec<T> &b) {
-    Var v = 0;
-    b.clear();
-    for (const T &tmp : a) {
-        v = max(v, var(tmp));
-        b.push(tmp);
-    }
-    return v;
-}
-
-class MinisatInterface : public SolverInterface {
-public:
-    MinisatInterface() :
-            solver() {
-    }
-
-    ~MinisatInterface() {
-    }
-
-    void ensure(Var max_var) {
-        while (solver.nVars() <= max_var) {
-            solver.newVar(false, false);
-        }
-    }
-
-    virtual void add_clause(const vector<Lit> &clause) {
-        vec<Lit> v;
-        ensure(convert(clause, v));
-        solver.addClause(v);
-    }
-
-    virtual bool solve(const vector<Lit> &assumptions) {
-        vec<Lit> v;
-        ensure(convert(assumptions, v));
-        return solver.solve(v);
-    }
-
-    virtual bool solve() {
-        return solver.solve();
-    }
-
-    virtual lbool model_value(Var v) {
-        return solver.modelValue(v);
-    }
-
-    virtual int num_variables() {
-        return solver.nVars();
-    }
-
-
-protected:
-    Solver solver;
-
-    void ensure_variables(int max_var);
-};
+#include "sat.h"
 
 class PICounter {
 public:
@@ -156,7 +81,7 @@ public:
 
     vector<uint64_t> count_det_compl();
 
-    uint64_t count_sat(uint64_t max_count = -1  );
+    uint64_t count_sat(uint64_t max_count = -1);
 
     bool count_det_iter(vector<uint64_t> &previous);
 
@@ -223,6 +148,8 @@ public:
     void set_seed_variables(const vector<CBMCVariable> &seedvar) {
         _seed_variables = seedvar;
     }
+
+    bool count_det_iter_sharp(vector<uint64_t> &previous);
 
 private:
     SolverInterface *solver;

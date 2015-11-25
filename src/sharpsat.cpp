@@ -14,7 +14,34 @@
 
 using namespace std;
 
+#include "pstreams-0.8.1/pstream.h"
 
+const string DSHARP = "dsharp -noIBCP ";
+
+uint64_t DSharpSAT::run(const string &filename) {
+    auto cmd = DSHARP + filename;
+    uint64_t count;
+    string FIND = "Models counted after projection:";
+
+    cout << ">>> " << cmd << endl;
+    redi::ipstream proc(cmd, redi::pstreams::pstdout);
+    std::string line;
+
+    // read child's stderr
+    while (std::getline(proc.err(), line)) {
+        std::cout << "dsharp: " << line << '\n';
+
+        if (line.find(FIND) != string::npos) {
+            count = (uint64_t) atoi(line.substr(FIND.length()).c_str());
+        }
+    }
+
+    // read child's stdout
+    while (std::getline(proc.out(), line))
+        std::cout << "dsharp: " << line << '\n';
+
+    return (uint64_t) count;
+}
 
 /*
 void finalcSATEvaluation()
@@ -83,7 +110,8 @@ void finalcSATEvaluation()
 }
 */
 
-uint64_t sharpSAT_dsharp(const char* filename) {
+#ifdef deadcode
+uint64_t DSharpSAT::run(const char *filename) {
     CMainSolver theSolver;
 
     auto dataFile = "data.txt";
@@ -128,7 +156,7 @@ uint64_t sharpSAT_dsharp(const char* filename) {
     // "-noCC"
     CSolverConf::allowComponentCaching = false;
     // "-noIBCP"
-    CSolverConf::allowImplicitBCP = true;
+    CSolverConf::allowImplicitBCP = false;
 
     //Dimitar Shterionov:
     // "-smoothNNF"
@@ -229,4 +257,6 @@ uint64_t sharpSAT_dsharp(const char* filename) {
         theSolver.writeNNF(nnfFile);
 
     return model_count;
+
 }
+#endif
