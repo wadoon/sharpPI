@@ -9,7 +9,7 @@
 using namespace std;
 
 //TODO move to entropy.h
-long input_space(const vector<uint64_t> &preimages) {
+uint64_t input_space(const vector<uint64_t> &preimages) {
     long sum = 0;
     for (int i = 0; i < preimages.size(); ++i) {
         sum += preimages[i];

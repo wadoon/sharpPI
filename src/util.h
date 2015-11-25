@@ -33,7 +33,7 @@ double get_cpu_time();
 //#define TIME_START() time_t __START__ = time(NULL);
 //#define TIME_END(str) printf("%s: %f s\n", str, (time(NULL) - __START__));
 
-long int input_space(const vector<uint64_t> &preimages);
+uint64_t input_space(const vector<uint64_t> &preimages);
 
 long double shannon_entropy(long int SI, const vector<uint64_t> &C);
 
