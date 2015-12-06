@@ -66,8 +66,10 @@ private:
 };
 
 class DSharpSAT : public SharpSAT {
+public:
+    virtual ~DSharpSAT() {}
 private:
-    uint64_t run(const std::string &filename) override;
+    virtual  uint64_t run(const std::string &filename) override;
 };
 
 

@@ -140,7 +140,6 @@ bool PICounter::count_det_iter_sharp(vector<uint64_t> &previous) {
 
     DSharpSAT sharpSAT;
 
-
     if (solver->solve(assum)) {
         write_output();
         if (verbose) {

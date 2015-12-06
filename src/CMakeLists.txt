@@ -17,17 +17,18 @@ INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 add_subdirectory(cbmc)
 add_subdirectory(minisat)
 add_subdirectory(glucose)
-add_subdirectory(dsharp)
 
-set(SOURCE_FILES main.cpp util.cpp termbox.cpp CommandLineArguments.cpp PICounter.cpp PICounter.h entropy.cpp entropy.h)
+set(SOURCE_FILES main.cpp util.cpp termbox.cpp
+        sharpsat.cpp sat.cpp
+        CommandLineArguments.cpp PICounter.cpp entropy.cpp)
 
 #-- --------------------------------------------------------------------------------------------------------------------
-add_executable(sharpPI ${SOURCE_FILES} sharpsat.cpp sharpsat.h sat.cpp sat.h)
-target_include_directories(sharpPI PUBLIC "minisat" "cbmc" "dsharp" "dsharp/shared")
-target_link_libraries(sharpPI cbmc minisat-lib-static dsharp ${Boost_LIBRARIES})
+add_executable(sharpPI ${SOURCE_FILES})
+target_include_directories(sharpPI PUBLIC "minisat" "cbmc")
+target_link_libraries(sharpPI cbmc minisat-lib-static  ${Boost_LIBRARIES})
 
 #-- --------------------------------------------------------------------------------------------------------------------
 add_executable(sharpPIg ${SOURCE_FILES})
-target_include_directories(sharpPIg  PUBLIC "glucose" "cbmc" "dsharp" "dsharp/shared")
-target_link_libraries(sharpPIg cbmc glucose dsharp ${Boost_LIBRARIES})
+target_include_directories(sharpPIg  PUBLIC "glucose" "cbmc")
+target_link_libraries(sharpPIg cbmc glucose  ${Boost_LIBRARIES})
 target_compile_definitions(sharpPIg PUBLIC -DGLUCOSE)
