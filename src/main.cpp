@@ -9,6 +9,13 @@
 using namespace std;
 
 /**
+ * true if the user want to terminate this program.
+ */
+bool _user_want_terminate = false;
+
+
+
+/**
  * File Stream for writing statistics.
  * Opened if `--stat` is given on the command line.
  */
@@ -108,6 +115,23 @@ struct Statistics {
 
 } statistics;
 
+
+//region signal handler
+#include <signal.h>
+
+void my_sigterm(int signum) {
+    if (signum == SIGTERM) {
+        _user_want_terminate = true;
+    }
+}
+
+void install_handler() {
+    struct sigaction sa;
+    sa.sa_handler = my_sigterm;
+    sigaction(SIGTERM, &sa, NULL);
+}
+//endregion
+
 /**
  *
  */
@@ -168,6 +192,9 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
     cout << "Count Limit: " << cli.limit() << endl;
 
     for (uint i = 0; i < cli.limit(); i++) {
+
+        if (_user_want_terminate) // user requested to terminate
+            break;
 
         double start = cpuTime();
 
@@ -238,7 +265,6 @@ int det_iter(const CommandLineArguments &cli, PICounter &counter) {
 
     bool b = true;
     for (int k = 1; k <= cli.limit() && b; k++) {
-
         double start = get_cpu_time();
         b = counter.count_det_iter(ret);
         double end = get_cpu_time();
@@ -278,6 +304,11 @@ int det_iter(const CommandLineArguments &cli, PICounter &counter) {
 
             statistics.min_entropy.guess = 0;
             statistics.write();
+        }
+
+        if (_user_want_terminate) {
+            cout << "Terminate on user request" << endl;
+            break;
         }
     }
     return 0;
@@ -330,6 +361,12 @@ int det_succ(const CommandLineArguments &cli, PICounter &counter) {
             statistics.min_entropy.guess = 0;
             statistics.write();
         }
+
+
+        if (_user_want_terminate) {
+            cout << "Terminate on user request" << endl;
+            break;
+        }
     }
 
     if (!b) {
@@ -359,8 +396,9 @@ int det_iter_sharp(const CommandLineArguments &cli, PICounter &counter) {
         b = counter.count_det_iter_sharp(ret);
         double end = get_cpu_time();
 
-        if (cli.verbose())
+        if (cli.verbose()) {
             cout << k << "# Result: " << ret << "\n";
+        }
 
         auto shannon_e = shannon_entropy(SI, ret);
         auto min_e = min_entropy(SI, ret.size());
@@ -394,6 +432,12 @@ int det_iter_sharp(const CommandLineArguments &cli, PICounter &counter) {
 
             statistics.min_entropy.guess = 0;
             statistics.write();
+        }
+
+
+        if (_user_want_terminate) {
+            cout << "Terminate on user request" << endl;
+            break;
         }
     }
     return 0;
@@ -489,6 +533,10 @@ int run(CommandLineArguments &cli) {
 
         case OPERATION_MODE_DETERMINISTIC_ITERATIVE_SHARP:
             return det_iter_sharp(cli, counter);
+
+        case OPERATION_MODE_SHARPSAT:
+            cout << "PROGRAMING ERROR THIS CASE SHOULD HANDLE BEFORE." << endl;
+            break;
     }
 
     if (cli.statistics()) {

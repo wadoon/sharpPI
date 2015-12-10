@@ -6,6 +6,9 @@
 #include <iostream>
 #include "entropy.h"
 
+extern bool _user_want_terminate;
+
+
 void create_assumption(const vector<Var> &vars, uint64_t value,
                        vector<Lit> &assum) {
     for (Var var : vars) {
@@ -315,7 +318,7 @@ uint64_t PICounter::count_sat( uint64_t max_count ) {
             _output_literals.push_back(i);
     }
 
-    while (solver->solve()) {
+    while (solver->solve() && ! _user_want_terminate ) {
         ++pi;
         prohibit_project(_output_literals);
 
