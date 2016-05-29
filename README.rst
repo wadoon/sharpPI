@@ -71,10 +71,9 @@ Operation Modes
 BUILD
 =====
 
-1. Install `cmake` and development packages for `boost` `eigen3` and `zlib`.
-   On Fedora 23 use::
+1. Additional to `make` and `gcc`, you need to install `cmake` and development packages for `boost` `eigen3` and `zlib`.  On Fedora 23 use::
 
-     sudo dnf install eigen3-devel boost-devel zlib-devel
+     sudo dnf install cmake eigen3-devel boost-devel zlib-devel
 
 2. Ensure each submodule is checkout out::
 
@@ -87,23 +86,28 @@ BUILD
      cmake -DCMAKE_BUILD_TYPE=Release ..
      make -j 4
 
+The `sharpPI` is in `build/src`.
 
 
-COPYRIGHT
+Problems
+========
+
+Changelog 
+=========
+
+See also
+========
+
+* Minisat
+* dsharp
+
+Copyright
 =========
 
 
-    (c) 2015 Alexander Weigl <weigl@kit.edu>
-          Application-Oriented Formal Verification
-            Institute for Theoretical Informatics
-             Karlsruhe Institute for Technology (KIT)
+(c) 2015 Alexander Weigl <weigl@kit.edu>
+    Application-Oriented Formal Verification
+    Institute for Theoretical Informatics
+    Karlsruhe Institute for Technology (KIT)
 
 
-PROBLEMS
-========
-
-SEE ALSO
-========
-
-BUGS
-====
