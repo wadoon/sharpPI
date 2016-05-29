@@ -1,11 +1,9 @@
 //
 // Created by weigl on 29.09.15.
 //
+#pragma once
 
 #include "dimacsparser.h"
-
-#ifndef MINISAT_CBMCPARSER_H
-#define MINISAT_CBMCPARSER_H
 
 using namespace std;
 
@@ -78,5 +76,3 @@ private:
 };
 
 std::vector<CBMCVariable> parseCBMCFile(const char *filename);
-
-#endif //MINISAT_CBMCPARSER_H

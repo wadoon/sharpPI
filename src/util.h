@@ -1,10 +1,7 @@
 //
 // Created by weigl on 10.10.15.
 //
-
-
-#ifndef SHARPPIC_UTIL_H
-#define SHARPPIC_UTIL_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -66,5 +63,3 @@ long double shannon_entropy_max(uint64_t SI, uint64_t inputs, uint64_t outputs);
     sum += (outputs - residum) * (item_in_box * log2(item_in_box));
 
 }*/
-
-#endif //SHARPPIC_UTIL_H

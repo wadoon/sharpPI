@@ -1,5 +1,4 @@
-#ifndef TERMBOX_H
-#define TERMBOX_H
+#pragma once
 
 #include <vector>
 #include <sstream>
@@ -68,7 +67,3 @@ extern TermBox TB;
 │getopt_long_only()       │               │                           │
 └─────────────────────────┴───────────────┴───────────────────────────┘
 */
-
-
-
-#endif // TERMBOX_H

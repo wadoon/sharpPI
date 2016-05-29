@@ -68,6 +68,27 @@ Operation Modes
 4. Non-Determinstic
 
 
+BUILD
+=====
+
+1. Install `cmake` and development packages for `boost` `eigen3` and `zlib`.
+   On Fedora 23 use::
+
+     sudo dnf install eigen3-devel boost-devel zlib-devel
+
+2. Ensure each submodule is checkout out::
+
+     git submodule init
+     git submodule update
+
+3. Build::
+
+     mdkir build; cd build
+     cmake -DCMAKE_BUILD_TYPE=Release ..
+     make -j 4
+
+
+
 COPYRIGHT
 =========
 

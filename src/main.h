@@ -1,9 +1,7 @@
 //
 // Created by weigl on 24.10.15.
-//
 
-#ifndef SHARPPIC_MAIN_H
-#define SHARPPIC_MAIN_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -16,5 +14,3 @@ const std::vector<std::string> COPYRIGHT = {
         "      Application-Oriented Formal Verification",
         "        Institute for Theoretical Informatics",
         "          Karlsruhe Institute for Technology (KIT)"};
-
-#endif //SHARPPIC_MAIN_H

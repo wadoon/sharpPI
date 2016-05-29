@@ -1,6 +1,7 @@
 //
 // Created by weigl on 16.11.15.
 //
+#pragma once
 
 #include <string>
 #include <vector>
@@ -10,8 +11,6 @@
 
 using namespace std;
 
-#ifndef SHARPPIC_DIMACSPARSER_H
-#define SHARPPIC_DIMACSPARSER_H
 
 class DimacsParser {
 public:
@@ -46,5 +45,3 @@ protected:
     vector<uint> cr;
 
 };
-
-#endif //SHARPPIC_DIMACSPARSER_H

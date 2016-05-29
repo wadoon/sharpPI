@@ -1,10 +1,7 @@
 //
 // Created by weigl on 25.11.15.
 //
-
-#ifndef SHARPPIC_SAT_H
-#define SHARPPIC_SAT_H
-
+#pragma once
 
 #include "core/Solver.h"
 #include "utils/System.h"
@@ -102,5 +99,3 @@ public:
 
     void ensure_variables(int max_var);
 };
-
-#endif //SHARPPIC_SAT_H

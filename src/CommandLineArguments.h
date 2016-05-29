@@ -1,9 +1,7 @@
 //
 // Created by weigl on 10.10.15.
 //
-
-#ifndef SHARPPIC_COMMANDLINEARGUMENTS_H
-#define SHARPPIC_COMMANDLINEARGUMENTS_H
+#pragma once
 
 
 #include <vector>
@@ -72,6 +70,3 @@ private:
     uint _max_models;
     bool _statistics;
 };
-
-
-#endif //SHARPPIC_COMMANDLINEARGUMENTS_H

@@ -1,9 +1,7 @@
 //
 // Created by weigl on 11.11.15.
 //
-
-#ifndef SHARPPIC_SHARPSAT_CPP_H
-#define SHARPPIC_SHARPSAT_CPP_H
+#pragma once
 
 #include <stdint.h>
 #include <string>
@@ -71,6 +69,3 @@ public:
 private:
     virtual  uint64_t run(const std::string &filename) override;
 };
-
-
-#endif //SHARPPIC_SHARPSAT_CPP_H

@@ -2,8 +2,7 @@
 // Created by weigl on 11.10.15.
 //
 
-#ifndef SHARPPIC_PICOUNTER_H
-#define SHARPPIC_PICOUNTER_H
+#pragma once
 
 #include <errno.h>
 #include <zlib.h>
@@ -171,5 +170,3 @@ private:
     void write_output();
 
 };
-
-#endif //SHARPPIC_PICOUNTER_H
