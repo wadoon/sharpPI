@@ -138,7 +138,8 @@ bool PICounter::count_det_iter(vector<uint64_t> &previous) {
 
 #include "sharpsat.h"
 
-bool PICounter::count_det_iter_sharp(vector<uint64_t> &previous) {
+bool PICounter::count_det_iter_sharp(vector<uint64_t> &previous,
+                                     const string &filename) {
     vector<Lit> assum;
 
     DSharpSAT sharpSAT;
@@ -156,7 +157,9 @@ bool PICounter::count_det_iter_sharp(vector<uint64_t> &previous) {
         // we fixate the found output
         assum = project_model(_output_literals);
 
-        uint64_t pi = sharpSAT(solver, assum, _input_literals);
+        uint64_t pi = sharpSAT(/*solver*/filename, assum, _input_literals);
+
+        //        Bucket b = {pi, true};
 
         previous.push_back(pi);
 
@@ -225,7 +228,7 @@ CounterMatrix PICounter::countrand() {
 		seed_and_input.push_back(v);
 	}
 
-	/*  
+	/*
 		seed_and_input.insert(seed_and_input.cbegin(), _input_literals.cbegin(),
 		_input_literals.cend());
 
@@ -322,7 +325,7 @@ uint64_t PICounter::count_sat( uint64_t max_count ) {
         ++pi;
         prohibit_project(_output_literals);
 
-		if(pi >= max_count) 
+		if(pi >= max_count)
 			break;
     }
     return pi;

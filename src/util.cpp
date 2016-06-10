@@ -5,6 +5,10 @@
 #include "util.h"
 
 #include <sstream>
+#include <iomanip>
+#include <locale>
+#include <chrono>
+#include <iostream>
 
 using namespace std;
 
@@ -29,6 +33,34 @@ long double min_entropy(long int SI, long n) {
     return log2(SI) - log2(n);
 }
 
+
+const auto PROGRAM_START_TIME = chrono::high_resolution_clock::now();
+ostream& console() {
+    auto current_time = chrono::high_resolution_clock::now();
+    auto difference = chrono::duration_cast<std::chrono::milliseconds>(
+                         current_time - PROGRAM_START_TIME);
+
+    ios init(NULL);
+    init.copyfmt(cout);
+    cout.imbue(std::locale(""));
+    cout << '['
+         << setw(8) << setfill(' ') << difference.count()
+         <<']'
+         << " ";
+    cout.copyfmt(init);
+    return cout;
+}
+
+
+const bool DEBUG = true;
+ostream& debug() {
+    if(DEBUG) {
+        return console();
+    } else {
+        //TODO
+        return console();
+    }
+}
 
 
 #ifdef _WIN32

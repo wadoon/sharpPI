@@ -136,12 +136,12 @@ void install_handler() {
  *
  */
 int count_deterministic(CommandLineArguments &cli, PICounter &counter) {
-    cout << "Operation Mode: Deterministic NAIVE" << endl;
+    console() << "Operation Mode: Deterministic NAIVE" << endl;
     counter.set_verbose(cli.verbose());
     vector<uint_fast64_t> ret = counter.count_det_compl();
 
     if (cli.verbose())
-        cout << "Result: " << ret << "\n";
+        console() << "Result: " << ret << "\n";
 
     //Assume we have 2^|INPUTVARS| possible inputs
     unsigned long int SI = input_space(ret);
@@ -379,25 +379,23 @@ int det_succ(const CommandLineArguments &cli, PICounter &counter) {
 /**
  *
  */
-int det_iter_sharp(const CommandLineArguments &cli, PICounter &counter) {
-    cout << "Operation Mode: Deterministic ITER" << endl;
+int det_iter_sharp(CommandLineArguments &cli, PICounter &counter) {
+    console() << "Operation Mode: Deterministic ITER" << endl;
     //Assume we have 2^|INPUTVARS| possible inputs
-    unsigned long int SI = (unsigned long) (1
-                                            << counter.get_input_literals().size());
-    unsigned long int SO = (unsigned long) (1
-                                            << counter.get_output_literals().size());
+    unsigned long int SI = (unsigned long) (1 << counter.get_input_literals().size());
+    unsigned long int SO = (unsigned long) (1 << counter.get_output_literals().size());
 
-    vector<uint64_t> ret(SI);
+    vector<uint64_t> ret;
 
     bool b = true;
     for (int k = 1; k <= cli.limit() && b; k++) {
 
         double start = get_cpu_time();
-        b = counter.count_det_iter_sharp(ret);
+        b = counter.count_det_iter_sharp(ret, cli.input_filename());
         double end = get_cpu_time();
 
         if (cli.verbose()) {
-            cout << k << "# Result: " << ret << "\n";
+            console() << k << "# Result: " << ret << "\n";
         }
 
         auto shannon_e = shannon_entropy(SI, ret);
@@ -436,7 +434,7 @@ int det_iter_sharp(const CommandLineArguments &cli, PICounter &counter) {
 
 
         if (_user_want_terminate) {
-            cout << "Terminate on user request" << endl;
+            console() << "Terminate on user request" << endl;
             break;
         }
     }
@@ -461,17 +459,17 @@ int count_sat(CommandLineArguments &cli) {
     counter.activate(parser.clauses(), parser.max_variable());
 
     if (cli.verbose()) {
-        std::cout << "Number of Variables: " << parser.max_variable() << std::endl;
-        std::cout << "Number of Clauses: " << parser.clauses().size()
+        console()  << "Number of Variables: " << parser.max_variable() << std::endl;
+        console() << "Number of Clauses: " << parser.clauses().size()
         << std::endl;
 
-        std::cout << "Projection Variables: " << parser.projection_corpus() << std::endl;
+        console() << "Projection Variables: " << parser.projection_corpus() << std::endl;
     }
 
     counter.set_verbose(cli.verbose());
 
     auto count = counter.count_sat(cli.max_models());
-    cout << "Model count: " << count << endl;
+    console() << "Model count: " << count << endl;
     return 0;
 }
 
@@ -498,14 +496,12 @@ int run(CommandLineArguments &cli) {
     counter.activate(parser.clauses(), parser.max_variable());
 
     if (cli.verbose()) {
-        std::cout << "Number of Variables: " << parser.max_variable() << std::endl;
-        std::cout << "Number of Clauses: " << parser.clauses().size()
-        << std::endl;
-
-        std::cout << "Input Variables: " << parser.ivars() << std::endl;
-        std::cout << "Output Variables: " << parser.ovars() << std::endl;
-        std::cout << "Seed Variables: " << parser.svars() << std::endl;
-
+        console() << "Number of Variables: " << parser.max_variable() << std::endl;
+        console() << "Number of Clauses: " << parser.clauses().size() << std::endl;
+        console() << "Input Variables: " << parser.ivars() << std::endl;
+        console() << "Output Variables: " << parser.ovars() << std::endl;
+        console() << "Seed Variables: " << parser.svars() << std::endl;
+        console() << "Output limit: " << cli.max_models() << std::endl;
     }
 
     if (cli.statistics()) {

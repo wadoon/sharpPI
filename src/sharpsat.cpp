@@ -6,31 +6,60 @@
 
 using namespace std;
 
-#include "pstreams-0.8.1/pstream.h"
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include "util.h"
 
 const string DSHARP = "dsharp -noIBCP ";
+const string DSHARP_FIND = "Models counted after projection:";
+
+const string CLASP = "clasp ";
+const string CLASP_FIND = "Model Count: "; //TODO look up string
+
+
+void exec(const string& cmd, stringstream& output) {
+    char buffer[128];
+    std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), pclose);
+    if (!pipe)
+        throw std::runtime_error("popen() failed!");
+
+    while (!feof(pipe.get())) {
+        if (fgets(buffer, 128, pipe.get()) != NULL){
+            debug() << buffer;
+            output << buffer;
+        }
+    }
+}
+
+
+uint64_t find_models_in_output(stringstream& output) {
+    output.seekg(0, ios_base::beg); // reset pointer to the beginning
+    std::string line;
+
+    while (getline(output, line)) {
+        if (line.find(FIND) != string::npos) {
+            return (uint64_t) atoi(line.substr(FIND.length()).c_str());
+        }
+    }
+    throw runtime_error("no model count found in output");
+}
 
 uint64_t DSharpSAT::run(const string &filename) {
     auto cmd = DSHARP + filename;
-    uint64_t count;
-    string FIND = "Models counted after projection:";
+    console() << ">>> " << cmd << endl;
+    stringstream buffer;
+    exec(cmd, buffer);
+    return find_models_in_output(buffer, DSHARP_FIND);
+}
 
-    cout << ">>> " << cmd << endl;
-    redi::ipstream proc(cmd, redi::pstreams::pstdout);
-    std::string line;
 
-    // read child's stderr
-    while (std::getline(proc.err(), line)) {
-        std::cout << "dsharp: " << line << '\n';
-
-        if (line.find(FIND) != string::npos) {
-            count = (uint64_t) atoi(line.substr(FIND.length()).c_str());
-        }
-    }
-
-    // read child's stdout
-    while (std::getline(proc.out(), line))
-        std::cout << "dsharp: " << line << '\n';
-
-    return (uint64_t) count;
+uint64_t ClaspSharpSAT::run(const string &filename) {
+    auto cmd = CLASP + filename;
+    console() << ">>> " << cmd << endl;
+    stringstream buffer;
+    exec(cmd, buffer);
+    return find_models_in_output(buffer, CLASP_FIND);
 }

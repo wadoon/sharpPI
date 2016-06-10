@@ -25,8 +25,33 @@ using namespace Minisat;
 
 using namespace std;
 
-
 #include "sat.h"
+
+/**
+ *
+ */
+template<typename T>
+struct _Bucket {
+    /**
+     *
+     */
+    T num_of_elements;
+
+    /**
+     *
+     */
+    bool closed;
+};
+
+/**
+ *
+ */
+typedef _Bucket<uint32_t> Bucket;
+
+/**
+ */
+typedef std::vector<Bucket> Buckets;
+
 
 class PICounter {
 public:
@@ -148,10 +173,12 @@ public:
         _seed_variables = seedvar;
     }
 
-    bool count_det_iter_sharp(vector<uint64_t> &previous);
+    bool count_det_iter_sharp(vector<uint64_t>& previous,
+                              const std::string& dimacs_filename);
 
 private:
     SolverInterface *solver;
+
 
     std::vector<CBMCVariable> _output_variables;
     std::vector<CBMCVariable> _input_variables;
