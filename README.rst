@@ -40,6 +40,9 @@ General
 
 --output V, -o V  Specifies an output variable. Multiple occurences possible.
 
+--statistic FILE  Write a csv file with current values in each turn.
+
+
 Non-determinism
 ----------------
 
@@ -51,6 +54,7 @@ For non-determinstic programs the set of random variables can be given by **--se
 Variable Naming
 ===============
 
+**TODO**: Explain @ and normal variables
 
 
 Operation Modes
@@ -68,8 +72,8 @@ Operation Modes
 4. Non-Determinstic
 
 
-BUILD
-=====
+Getting Started
+===============
 
 1. Additional to `make` and `gcc`, you need to install `cmake` and development packages for `boost` `eigen3` and `zlib`.  On Fedora 23 use::
 
@@ -86,28 +90,29 @@ BUILD
      cmake -DCMAKE_BUILD_TYPE=Release ..
      make -j 4
 
-The `sharpPI` is in `build/src`.
+The `sharpPI` is in `build/`.
 
 
 Problems
 ========
 
-Changelog 
+Changelog
 =========
 
 See also
 ========
 
-* Minisat
-* dsharp
+* `Minisat <>`_
+* `Glucose <>`_
+* `dsharp <>`_
+* `clasp <>`_
 
 Copyright
 =========
 
+sharpPI is under GNU GPL v3::
 
-(c) 2015 Alexander Weigl <weigl@kit.edu>
-    Application-Oriented Formal Verification
-    Institute for Theoretical Informatics
-    Karlsruhe Institute for Technology (KIT)
-
-
+    (c) 2015 Alexander Weigl <weigl@kit.edu>
+        Application-Oriented Formal Verification
+        Institute for Theoretical Informatics
+        Karlsruhe Institute for Technology (KIT)

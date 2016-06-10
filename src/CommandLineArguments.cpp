@@ -13,7 +13,7 @@ namespace po = boost::program_options;
 typedef std::vector<std::string> StringList;
 
 CommandLineArguments::CommandLineArguments()
-        : _verbose(false), _help(false), _output_model_filename("model.csv"),
+    : _verbose(false), _help(false), //_output_model_filename("model.csv"),
           _statistics(false),
           _mode(OPERATION_MODE_DETERMINISTIC),
 
@@ -29,9 +29,9 @@ CommandLineArguments::CommandLineArguments()
 				  (",n", po::value<uint>(&_max_models)->value_name("INT")->default_value(-1), "maximum count on models that should be found")
 				  ("input,i", po::value<StringList>(&_input_variables)->value_name("VARIABLE"), "input")
 				  ("output,o", po::value<StringList>(&_output_variables)->value_name("VARIABLE"), "output")
+                                  ("statistic", po::value<string>(&_stat_filename)->value_name("FILE")->default_value(""), "statistics filename, default: no statistic is written")
 				  //positional
 				  ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
-
 
 			  ndet.add_options()("s", po::value<StringList>(&_seed_variables)->value_name("variable"), "seed");
 			  ndet.add_options()("density", "density values for each output");

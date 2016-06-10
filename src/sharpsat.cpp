@@ -35,13 +35,13 @@ void exec(const string& cmd, stringstream& output) {
 }
 
 
-uint64_t find_models_in_output(stringstream& output) {
+uint64_t find_models_in_output(stringstream& output, const string& find) {
     output.seekg(0, ios_base::beg); // reset pointer to the beginning
     std::string line;
 
     while (getline(output, line)) {
-        if (line.find(FIND) != string::npos) {
-            return (uint64_t) atoi(line.substr(FIND.length()).c_str());
+        if (line.find(find) != string::npos) {
+            return (uint64_t) atoi(line.substr(find.length()).c_str());
         }
     }
     throw runtime_error("no model count found in output");

@@ -42,13 +42,11 @@ public:
 
     std::string &input_filename()  { return _input_filename; };
 
-    const std::string &output_model_filename()  { return _output_model_filename; }
+    const std::string &statistic_filename()  const { return _stat_filename; }
+    const bool has_statistic() const { return statistic_filename().size() > 0;}
 
     uint limit() const { return _limit; };
     uint max_models() const { return _max_models; };
-
-    bool statistics() const { return _statistics; }
-
     void printUsage();
 
 private:
@@ -65,7 +63,7 @@ private:
     std::string _input_filename;
     bool _verbose;
     bool _help;
-    std::string _output_model_filename;
+    std::string _stat_filename;
     uint _limit;
     uint _max_models;
     bool _statistics;

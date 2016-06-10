@@ -112,7 +112,7 @@ private:
 
 class ClaspSharpSAT : public SharpSAT {
 public:
-    virtual ~DSharpSAT() {}
+    virtual ~ClaspSharpSAT() {}
 private:
     virtual  uint64_t run(const std::string &filename) override;
 };

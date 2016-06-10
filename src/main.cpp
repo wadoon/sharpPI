@@ -229,7 +229,7 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
 
         cout << TB.create_table(results) << endl;
 
-        if (cli.statistics()) {
+        if (cli.has_statistic()) {
             statistics.num_of_iteration = i;
             statistics.number_of_inputs = sum_buckets(ret);
             statistics.number_of_outputs = ret.size();
@@ -285,7 +285,7 @@ int det_iter(const CommandLineArguments &cli, PICounter &counter) {
 
         cout << TB.create_table(results) << endl;
 
-        if (cli.statistics()) {
+        if (cli.has_statistic()) {
             statistics.num_of_iteration = k;
             statistics.number_of_inputs = sum_buckets(ret);
             statistics.number_of_outputs = ret.size();
@@ -342,7 +342,7 @@ int det_succ(const CommandLineArguments &cli, PICounter &counter) {
                                           {"Leakage",                atos(leakage)},};
         cout << TB.create_table(results) << endl;
 
-        if (cli.statistics()) {
+        if (cli.has_statistic()) {
             statistics.num_of_iteration = i;
             statistics.number_of_inputs = sum_buckets(ret);
             statistics.number_of_outputs = ret.size();
@@ -411,7 +411,7 @@ int det_iter_sharp(CommandLineArguments &cli, PICounter &counter) {
 
         cout << TB.create_table(results) << endl;
 
-        if (cli.statistics()) {
+        if (cli.has_statistic()) {
             statistics.num_of_iteration = k;
             statistics.number_of_inputs = sum_buckets(ret);
             statistics.number_of_outputs = ret.size();
@@ -450,7 +450,7 @@ int count_sat(CommandLineArguments &cli) {
     parser.read();
     PICounter counter;
 
-    counter.set_output_model(cli.output_model_filename());
+    counter.set_output_model(cli.statistic_filename());
     counter.set_output_literals(parser.projection_corpus());
 
     auto solver = new MinisatInterface();
@@ -480,7 +480,7 @@ int run(CommandLineArguments &cli) {
 
     PICounter counter;
 
-    counter.set_output_model(cli.output_model_filename());
+    counter.set_output_model(cli.statistic_filename());
 
     counter.set_input_variables(parser.input_variables());
     counter.set_output_variables(parser.output_variables());
@@ -504,8 +504,8 @@ int run(CommandLineArguments &cli) {
         console() << "Output limit: " << cli.max_models() << std::endl;
     }
 
-    if (cli.statistics()) {
-        fstatistics.open("statistics.csv");
+    if (cli.has_statistic()) {
+        fstatistics.open(cli.statistic_filename());
         statistics.header();
     }
 
@@ -535,7 +535,7 @@ int run(CommandLineArguments &cli) {
             break;
     }
 
-    if (cli.statistics()) {
+    if (cli.has_statistic()) {
         fstatistics.close();
     }
 
