@@ -5,9 +5,9 @@ sharpPI
 
 :Author: Alexander Weigl <weigl@kit.edu>
 :Subtitle: fdasfdasf
-:Date:   2015-11-24
+:Date:   2016-06-15
 :Copyright: GPL version 3
-:Version: 0.8.2
+:Version: 0.10.0
 :Manual section: 1
 :Manual group: text processing
 

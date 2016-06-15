@@ -51,7 +51,7 @@ uint64_t input_space(const vector<uint64_t> &preimages);
 
 /**
  */
-long double shannon_entropy(long int SI, const vector<uint64_t> &C);
+long double shannon_entropy(uint64_t SI, const vector<uint64_t> &C);
 
 
 /**
@@ -73,12 +73,15 @@ std::string atos(const T &anything) {
 /**
  */
 template<typename T>
-T sum_buckets(const vector<T> buckets);
+T sum_buckets(const vector<T> &buckets);
 
 long double shannon_entropy_lower_bound(const vector<uint64_t>& buckets,
                                         const vector<bool> &closed,
-                                        uint64_t input_space);
+                                        uint64_t input_space,
+                                        uint64_t reached_inputs);
+
 
 long double shannon_entropy_upper_bound(const vector<uint64_t>& buckets,
                                         const vector<bool> &closed,
-                                        uint64_t input_space);
+                                        uint64_t input_space,
+                                        uint64_t reached_inputs);

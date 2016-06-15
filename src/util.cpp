@@ -10,6 +10,7 @@
 #include <chrono>
 #include <iostream>
 #include <queue>
+#include <algorithm>
 
 using namespace std;
 
@@ -22,7 +23,7 @@ uint64_t input_space(const vector<uint64_t> &preimages) {
     return sum;
 }
 
-long double shannon_entropy(long int SI, const vector<uint64_t> &C) {
+long double shannon_entropy(uint64_t SI, const vector<uint64_t> &C) {
     long double sum = 0;
     for (auto v : C)
         if (v != 0 && v != 1)
@@ -120,40 +121,43 @@ double get_cpu_time() {
 
 template<typename T>
 T sum_buckets(const vector<T> &buckets) {
-    return accumulate(cpy.begin(), cpy.end(), 0);
+    return accumulate(buckets.begin(), buckets.end(), 0);
 }
 
-//template uint64_t sum_buckets<uint64_t>(vector<uint64_t> &buckets); // explicit instantiation.
+template uint64_t sum_buckets<uint64_t>(const vector<uint64_t> &buckets); // explicit instantiation.
 
 
 long double shannon_entropy_upper_bound(const vector<uint64_t>& buckets,
                                         const vector<bool> &closed,
-                                        uint64_t input_space) {
+                                        uint64_t input_space,
+                                        uint64_t sum){
 
     vector<uint64_t> cpy(buckets);
     auto max = distance(cpy.begin(), max_element(cpy.begin(), cpy.end()));
-    auto sum = sum_buckets(buckets);
-    auto residum= = input_space - sum;
-    cpy[max] += residium;
-    return shannon_entropy(input_space, cpy));
+    auto residum=  input_space - sum;
+    cpy[max] += residum;
+    return shannon_entropy(input_space, cpy);
 }
 
 long double shannon_entropy_lower_bound(const vector<uint64_t>& buckets,
                                         const vector<bool> &closed,
-                                        uint64_t input_space) {
+                                        uint64_t input_space,
+                                        uint64_t sum) {
+
 
     vector<uint64_t> cpy(buckets);
     priority_queue<uint64_t, vector<uint64_t>, greater<uint64_t>> q(cpy.begin(), cpy.end());
 
-    auto sum = sum_buckets(buckets);
-    auto residum= = input_space - sum;
+    auto residum=  input_space - sum;
 
     while(residum > 0) {
-        auto min1 = q.pop();
-        auto min2 = q.pop();
+        uint64_t min1 = q.top();
+        q.pop();
 
-        auto add = min(residium, min2 - min1 + 1);
-        q.push(min2);
+        uint64_t min2 = q.top();
+
+        auto add = min(residum, min2 - min1 + 1);
+
         q.push(min1+add);
         residum -= add;
     }

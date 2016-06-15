@@ -43,8 +43,7 @@ struct Statistics {
      */
     template<typename T>
     struct Guess {
-        T guess, upper_bound;
-        long double lower_bound;
+        T guess, upper_bound, lower_bound;
     };
 
 
@@ -63,6 +62,17 @@ struct Statistics {
      * Number of inputs found so far.
      */
     uint64_t number_of_inputs;
+
+
+    /**
+     * theoretical maximal inputs
+     */
+    uint64_t SI;
+
+    /**
+     * theoretical maximal outputs
+     */
+    uint64_t SO;
 
     /**
      * The cpu time consumed in one iteration.
@@ -96,6 +106,13 @@ struct Statistics {
                     "\tnumber_of_outputs" << endl;
         }
     }
+
+    void update(const vector<uint64_t> &buckets, const vector<bool>& closed) {
+        shannon_entropy.guess       = ::shannon_entropy(number_of_inputs, buckets);
+        shannon_entropy.lower_bound = shannon_entropy_lower_bound(buckets, closed, SI, number_of_inputs);
+        shannon_entropy.upper_bound = shannon_entropy_upper_bound(buckets, closed, SI, number_of_inputs);
+    }
+
 
     /**
      * Write the current statistic values into `fstatistics`
@@ -181,6 +198,8 @@ int ndet(CommandLineArguments &arguments, PICounter &counter) {
 int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
     cout << "Operation Mode: DETERMINISTIC SHUFFLE" << endl;
     uint SO = (uint) 1 << counter.get_output_literals().size();
+    //Assume we have 2^|INPUTVARS| possible inputs
+    unsigned long int SI = (uint) 1 << counter.get_input_literals().size();
 
     if (SO == 0) {
         throw logic_error("to much possible outputs (>32)");
@@ -190,6 +209,9 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
     vector<uint64_t> ret(SO, 0);
 
     cout << "Count Limit: " << cli.limit() << endl;
+
+    statistics.SO = SO;
+    statistics.SI = SI;
 
     for (uint i = 0; i < cli.limit(); i++) {
 
@@ -213,9 +235,6 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
             cout << "Result: " << ret << "\n";
         }
 
-        //Assume we have 2^|INPUTVARS| possible inputs
-        unsigned long int SI = (uint) 1 << counter.get_input_literals().size();
-
         auto shannon_e = shannon_entropy(SI, ret);
         auto min_e = min_entropy(SI, ret.size());
         auto leakage = log2(SI) - shannon_entropy(SI, ret);
@@ -234,16 +253,7 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
             statistics.number_of_inputs = sum_buckets(ret);
             statistics.number_of_outputs = ret.size();
             statistics.cpu_time_consumed = end - start;
-
-            vector<uint64_t> lowerbound(ret);
-            size_t index = min_element(lowerbound.begin(), lowerbound.end())
-                           - lowerbound.begin();
-            lowerbound[index] += (SI - statistics.number_of_inputs);
-
-            statistics.shannon_entropy.lower_bound = shannon_entropy(SI, lowerbound);
-            statistics.shannon_entropy.upper_bound =
-                    shannon_e + shannon_entropy_max(SI, (SI - statistics.number_of_inputs), SO);
-            statistics.shannon_entropy.guess = shannon_e;
+            statistics.update(ret, closed );
             statistics.min_entropy.guess = 0;
             statistics.write();
         }
@@ -260,8 +270,12 @@ int det_iter(const CommandLineArguments &cli, PICounter &counter) {
                                             << counter.get_input_literals().size());
     unsigned long int SO = (unsigned long) (1
                                             << counter.get_output_literals().size());
+    statistics.SO = SO;
+    statistics.SI = SI;
 
     vector<uint64_t> ret(SI);
+
+    const vector<bool> closed(false, SI);
 
     bool b = true;
     for (int k = 1; k <= cli.limit() && b; k++) {
@@ -290,18 +304,7 @@ int det_iter(const CommandLineArguments &cli, PICounter &counter) {
             statistics.number_of_inputs = sum_buckets(ret);
             statistics.number_of_outputs = ret.size();
             statistics.cpu_time_consumed = end - start;
-            statistics.shannon_entropy.guess = shannon_e;
-
-            long double lower_guess = 1.0 / SI
-                                      * (SI - statistics.number_of_inputs)
-                                      * log2((long double) (SI - statistics.number_of_inputs));
-
-            statistics.shannon_entropy.lower_bound = shannon_e + lower_guess;
-
-            statistics.shannon_entropy.lower_bound = shannon_e
-                                                     + shannon_entropy_max(SI, SI - statistics.number_of_inputs,
-                                                                           SO - statistics.number_of_outputs);
-
+            statistics.update(ret, closed);
             statistics.min_entropy.guess = 0;
             statistics.write();
         }
@@ -319,6 +322,9 @@ int det_succ(const CommandLineArguments &cli, PICounter &counter) {
 
     const unsigned long SO = 1u << counter.get_output_literals().size();
     const unsigned long SI = 1u << counter.get_input_literals().size();
+
+    statistics.SO = SO;
+    statistics.SI = SI;
 
     vector<bool> closed(SO, false);
     vector<uint64_t> ret(SO, 0);
@@ -347,17 +353,7 @@ int det_succ(const CommandLineArguments &cli, PICounter &counter) {
             statistics.number_of_inputs = sum_buckets(ret);
             statistics.number_of_outputs = ret.size();
             statistics.cpu_time_consumed = end - start;
-
-            vector<uint64_t> lowerbound(ret);
-            size_t index = min_element(lowerbound.begin(), lowerbound.end())
-                           - lowerbound.begin();
-            lowerbound[index] += (SI - statistics.number_of_inputs);
-
-            statistics.shannon_entropy.lower_bound = shannon_entropy(SI, lowerbound);
-            statistics.shannon_entropy.upper_bound = shannon_e + shannon_entropy_max(SI,
-                                                                                     (SI - statistics.number_of_inputs),
-                                                                                     SO);
-            statistics.shannon_entropy.guess = shannon_e;
+            statistics.update(ret, closed);
             statistics.min_entropy.guess = 0;
             statistics.write();
         }
@@ -382,10 +378,14 @@ int det_succ(const CommandLineArguments &cli, PICounter &counter) {
 int det_iter_sharp(CommandLineArguments &cli, PICounter &counter) {
     console() << "Operation Mode: Deterministic ITER" << endl;
     //Assume we have 2^|INPUTVARS| possible inputs
-    unsigned long int SI = (unsigned long) (1 << counter.get_input_literals().size());
-    unsigned long int SO = (unsigned long) (1 << counter.get_output_literals().size());
+    const uint64_t SI = (unsigned long) (1 << counter.get_input_literals().size());
+    const uint64_t SO = (unsigned long) (1 << counter.get_output_literals().size());
+
+    statistics.SO = SO;
+    statistics.SI = SI;
 
     vector<uint64_t> ret;
+    const vector<bool> closed(false, SI);
 
     bool b = true;
     for (int k = 1; k <= cli.limit() && b; k++) {
@@ -416,18 +416,7 @@ int det_iter_sharp(CommandLineArguments &cli, PICounter &counter) {
             statistics.number_of_inputs = sum_buckets(ret);
             statistics.number_of_outputs = ret.size();
             statistics.cpu_time_consumed = end - start;
-            statistics.shannon_entropy.guess = shannon_e;
-
-            long double lower_guess = 1.0 / SI
-                                      * (SI - statistics.number_of_inputs)
-                                      * log2((long double) (SI - statistics.number_of_inputs));
-
-            statistics.shannon_entropy.lower_bound = shannon_e + lower_guess;
-
-            statistics.shannon_entropy.lower_bound = shannon_e
-                                                     + shannon_entropy_max(SI, SI - statistics.number_of_inputs,
-                                                                           SO - statistics.number_of_outputs);
-
+            statistics.update(ret, closed);
             statistics.min_entropy.guess = 0;
             statistics.write();
         }
