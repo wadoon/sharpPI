@@ -9,6 +9,7 @@
 #include <locale>
 #include <chrono>
 #include <iostream>
+#include <queue>
 
 using namespace std;
 
@@ -118,32 +119,46 @@ double get_cpu_time() {
 }
 
 template<typename T>
-T sum_buckets(vector<T> buckets) {
-    T sum = 0;
-    for(auto i : buckets) {
-        sum += i;
-    }
-    return sum;
+T sum_buckets(const vector<T> &buckets) {
+    return accumulate(cpy.begin(), cpy.end(), 0);
 }
 
-template uint64_t sum_buckets<uint64_t>(vector<uint64_t> buckets); // explicit instantiation.
+//template uint64_t sum_buckets<uint64_t>(vector<uint64_t> &buckets); // explicit instantiation.
 
 
-long double shannon_entropy_max(uint64_t SI, uint64_t inputs, uint64_t outputs) {
-    long double sum = 0;
+long double shannon_entropy_upper_bound(const vector<uint64_t>& buckets,
+                                        const vector<bool> &closed,
+                                        uint64_t input_space) {
 
-    if (inputs > outputs) {
-        long double q = inputs / outputs;
-        long double residum = inputs - q;
+    vector<uint64_t> cpy(buckets);
+    auto max = distance(cpy.begin(), max_element(cpy.begin(), cpy.end()));
+    auto sum = sum_buckets(buckets);
+    auto residum= = input_space - sum;
+    cpy[max] += residium;
+    return shannon_entropy(input_space, cpy));
+}
 
-        long double item_in_box = floor(q);
+long double shannon_entropy_lower_bound(const vector<uint64_t>& buckets,
+                                        const vector<bool> &closed,
+                                        uint64_t input_space) {
 
-        //assert(residum < outputs);
+    vector<uint64_t> cpy(buckets);
+    priority_queue<uint64_t, vector<uint64_t>, greater<uint64_t>> q(cpy.begin(), cpy.end());
 
-        sum = residum * (item_in_box + 1) * log2(item_in_box + 1);
-        sum += (outputs - residum) * (item_in_box * log2(item_in_box));
+    auto sum = sum_buckets(buckets);
+    auto residum= = input_space - sum;
+
+    while(residum > 0) {
+        auto min1 = q.pop();
+        auto min2 = q.pop();
+
+        auto add = min(residium, min2 - min1 + 1);
+        q.push(min2);
+        q.push(min1+add);
+        residum -= add;
     }
-    return 1.0 / SI * sum;
+
+    return shannon_entropy(input_space, cpy);
 }
 
 

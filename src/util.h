@@ -75,23 +75,12 @@ std::string atos(const T &anything) {
 template<typename T>
 T sum_buckets(vector<T> buckets);
 
+long double shannon_entropy_lower_bound(const vector<uint64_t>& buckets,
+                                        const vector<bool> &closed,
+                                        uint64_t input_space);
+
+long double shannon_entropy_upper_bound(const vector<uint64_t>& buckets,
+                                        const vector<bool> &closed,
+                                        uint64_t input_space);
 
 
-/**
- */
-long double shannon_entropy_max(uint64_t SI, uint64_t inputs, uint64_t outputs);
-
-
-/*long double shannon_entropy_max(uint64_t SI, const vector<uint64_t>& buckets, uint64_t inputs, uint64_t outputs) {
-    long double sum = 0;
-    long double q = inputs / outputs;
-    long double residum = inputs - q;
-
-    long double item_in_box = floor(q);
-
-    //assert(residum < outputs);
-
-    sum = residum * (item_in_box + 1) * log2(item_in_box + 1);
-    sum += (outputs - residum) * (item_in_box * log2(item_in_box));
-
-}*/
