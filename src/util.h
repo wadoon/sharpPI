@@ -73,7 +73,7 @@ std::string atos(const T &anything) {
 /**
  */
 template<typename T>
-T sum_buckets(vector<T> buckets);
+T sum_buckets(const vector<T> buckets);
 
 long double shannon_entropy_lower_bound(const vector<uint64_t>& buckets,
                                         const vector<bool> &closed,
@@ -82,5 +82,3 @@ long double shannon_entropy_lower_bound(const vector<uint64_t>& buckets,
 long double shannon_entropy_upper_bound(const vector<uint64_t>& buckets,
                                         const vector<bool> &closed,
                                         uint64_t input_space);
-
-
