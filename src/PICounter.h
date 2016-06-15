@@ -23,9 +23,13 @@ using namespace Glucose;
 using namespace Minisat;
 #endif
 
+
 using namespace std;
 
 #include "sat.h"
+
+using LabelList = std::vector<std::pair<uint64_t, Var>>;
+
 
 /**
  *
@@ -109,7 +113,12 @@ public:
 
     bool count_det_iter(vector<uint64_t> &previous);
 
-    bool count_det_succ(vector<bool> &closed, vector<uint64_t> &count_table);
+    LabelList prepare_sync_counting(vector<bool>&,
+                                    vector<uint64_t>&);
+
+    bool count_sync(LabelList& labels,
+                        vector<bool> &closed,
+                        vector<uint64_t> &count_table);
 
     bool count_unstructured(uint64_t limit, vector<uint64_t> &count_table);
 

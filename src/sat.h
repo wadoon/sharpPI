@@ -41,6 +41,8 @@ public:
 
     virtual void ensure_variables(int max_var) = 0;
 
+    virtual Var  new_variable() = 0;
+
 };
 
 template<typename T=Lit>
@@ -91,6 +93,10 @@ public:
 
     virtual int num_variables() {
         return solver.nVars();
+    }
+
+    virtual Var new_variable() override {
+        return solver.newVar(false,false);
     }
 
 

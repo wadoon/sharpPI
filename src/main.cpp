@@ -317,22 +317,22 @@ int det_iter(const CommandLineArguments &cli, PICounter &counter) {
     return 0;
 }
 
-int det_succ(const CommandLineArguments &cli, PICounter &counter) {
-    cout << "OperationMode: DETERMINISTIC SUCCESSIVE" << endl;
-
+int det_sync(const CommandLineArguments &cli, PICounter &counter) {
+    cout << "OperationMode: Synced Counting" << endl;
     const unsigned long SO = 1u << counter.get_output_literals().size();
     const unsigned long SI = 1u << counter.get_input_literals().size();
-
     statistics.SO = SO;
     statistics.SI = SI;
 
-    vector<bool> closed(SO, false);
-    vector<uint64_t> ret(SO, 0);
-
+    vector<bool> closed;
+    vector<uint64_t> ret;
     bool b = true;
+
+    auto labels = counter.prepare_sync_counting(closed, ret);
+
     for (uint i = 0; i < cli.limit() && b; i++) {
         double start = get_cpu_time();
-        b = counter.count_det_succ(closed, ret);
+        b = counter.count_sync(labels, closed, ret);
         double end = get_cpu_time();
 
         auto shannon_e = shannon_entropy(SI, ret);
@@ -511,7 +511,7 @@ int run(CommandLineArguments &cli) {
             return det_iter(cli, counter);
 
         case OPERATION_MODE_DETERMINISTIC_SUCCESSIVE:
-            return det_succ(cli, counter);
+            return det_sync(cli, counter);
 
         case OPERATION_MODE_DETERMINISTIC_SHUFFLE:
             return det_shuffle(cli, counter);

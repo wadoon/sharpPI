@@ -170,26 +170,82 @@ bool PICounter::count_det_iter_sharp(vector<uint64_t> &previous,
     return false;
 }
 
-bool PICounter::count_det_succ(vector<bool> &closed,
-                               vector<uint64_t> &count_table) {
-    const uint64_t maximal_output = 1 << _output_literals.size();
+vector<Lit> negate_cube(vector<Lit> cube) {
+    vector<Lit> clause;
+    for (const Lit l : cube) {
+        clause.push_back(~l);
+    }
+    return clause;
+}
+
+
+LabelList PICounter::prepare_sync_counting(vector<bool> &closed,
+                                           vector<uint64_t> &count_table) {
+
+    LabelList label_literals;
+    std::vector<Lit> assump;
+    //    std::fill(closed.begin(), closed.end(), true);
+
+    while( solver->solve(assump) ) {
+        // get the model
+        vector<Lit> model = negate_cube(project_model(_output_literals));
+
+        // define a label literal
+        Var label = solver->new_variable();
+        // label to clause
+        model.push_back(mkLit(label,true));
+
+        // add clause to solver
+        solver->add_clause(model);
+
+        //if label is true, that ~label is false and the
+        //model clause takes action and prohibits
+        assump.push_back(mkLit(label,false));
+
+        auto output = interpret(_output_literals);
+        closed.push_back(false);
+
+        // book the found input right
+        count_table.push_back(1);
+        prohibit_project(_input_literals);
+
+        //save label literals
+        label_literals.push_back({output,label});
+    }
+
+    return label_literals;
+}
+
+bool PICounter::count_sync(LabelList &labels,
+                           vector<bool> &closed,
+                           vector<uint64_t> &count_table) {
     bool one_open = false;
 
+    //forbid every clause, by adding positive label literal
     vector<Lit> assumption;
-    for (uint64_t i = 0; i < maximal_output; i++) {
-        if (closed[i])
-            continue;
-        create_assumption(_output_literals, i, assumption); // TODO optimize reduce copy
+    for(auto const item :  labels)
+        assumption.push_back(mkLit(item.second, false));
 
-        if (solver->solve(assumption)) {
-            count_table[i] += 1;
+    for(int i = 0; i < labels.size(); i++) {
+        if(closed[i])
+            continue;
+
+        //enable this output
+        assumption[i] = ~ assumption[i];
+
+        if(solver->solve(assumption)) {
+            auto output_value = interpret(_output_literals);
+            cout << output_value << " " << labels[i].first << endl;
+
+            //book input
             prohibit_project(_input_literals);
-            one_open = true;
-        } else {
+            count_table[i] += 1;
+        }else{
             closed[i] = true;
         }
 
-        assumption.clear();
+        //disable this  output
+        assumption[i] = ~ assumption[i];
     }
     return one_open;
 }
