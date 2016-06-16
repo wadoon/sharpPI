@@ -203,6 +203,7 @@ LabelList PICounter::prepare_sync_counting(vector<bool> &closed,
         assump.push_back(mkLit(label,false));
 
         auto output = interpret(_output_literals);
+
         closed.push_back(false);
 
         // book the found input right
@@ -223,8 +224,10 @@ bool PICounter::count_sync(LabelList &labels,
 
     //forbid every clause, by adding positive label literal
     vector<Lit> assumption;
-    for(auto const item :  labels)
+    for(auto const item :  labels) {
         assumption.push_back(mkLit(item.second, false));
+    }
+
 
     for(int i = 0; i < labels.size(); i++) {
         if(closed[i])
@@ -240,6 +243,8 @@ bool PICounter::count_sync(LabelList &labels,
             //book input
             prohibit_project(_input_literals);
             count_table[i] += 1;
+
+            one_open=true;
         }else{
             closed[i] = true;
         }
