@@ -14,7 +14,7 @@ typedef std::vector<std::string> StringList;
 
 CommandLineArguments::CommandLineArguments()
     : _verbose(false), _help(false), //_output_model_filename("model.csv"),
-          _statistics(false),
+          //_statistics(false),
           _mode(OPERATION_MODE_DETERMINISTIC),
 
 		  general("General"),
@@ -23,13 +23,13 @@ CommandLineArguments::CommandLineArguments()
 			  general.add_options()
 				  ("help,h", "produce help message")
 				  ("verbose,v", "verbose mode")
-				  ("stat", "enable statistics")
+		//		  ("stat", "enable statistics")
 				  ("limit,l", po::value<uint>(&_limit)->value_name("INT")->default_value(10), "limit rounds")
 				  ("mode,m", po::value<uint>(&_mode)->value_name("INT"), "mode")
 				  (",n", po::value<uint>(&_max_models)->value_name("INT")->default_value(-1), "maximum count on models that should be found")
 				  ("input,i", po::value<StringList>(&_input_variables)->value_name("VARIABLE"), "input")
 				  ("output,o", po::value<StringList>(&_output_variables)->value_name("VARIABLE"), "output")
-                                  ("statistic", po::value<string>(&_stat_filename)->value_name("FILE")->default_value(""), "statistics filename, default: no statistic is written")
+				  ("statistic", po::value<string>(&_stat_filename)->value_name("FILE")->default_value(""), "statistics filename, default: no statistic is written")
 				  //positional
 				  ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
 
@@ -50,7 +50,7 @@ void CommandLineArguments::initialize(int argc, char *argv[]) {
                         .run(), vm);
 
 
-        _statistics = vm.count("stat");
+        //_statistics = vm.count("stat");
         _verbose = vm.count("verbose");
 
         if (!vm.count("help")) { // do not signal errors if help is provided

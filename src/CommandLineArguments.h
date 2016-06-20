@@ -66,5 +66,5 @@ private:
     std::string _stat_filename;
     uint _limit;
     uint _max_models;
-    bool _statistics;
+    //bool _statistics;
 };

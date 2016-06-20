@@ -238,7 +238,7 @@ bool PICounter::count_sync(LabelList &labels,
 
         if(solver->solve(assumption)) {
             auto output_value = interpret(_output_literals);
-            cout << output_value << " " << labels[i].first << endl;
+            //cout << output_value << " " << labels[i].first << endl;
 
             //book input
             prohibit_project(_input_literals);

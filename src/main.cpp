@@ -94,7 +94,7 @@ struct Statistics {
      */
     void header() {
         if (fstatistics.is_open()) {
-            fstatistics << "number_of_iteration"
+            cout << "number_of_iteration"
                     "\tcpu_time_consumed"
                     "\tshannon_lower"
                     "\tshannon_guess"
@@ -119,14 +119,13 @@ struct Statistics {
      */
     void write() {
         if (fstatistics.is_open()) {
-            fstatistics << num_of_iteration << "\t" << cpu_time_consumed << "\t"
+            cout  << num_of_iteration << "\t" << cpu_time_consumed << "\t"
             << shannon_entropy.lower_bound << "\t"
             << shannon_entropy.guess << "\t"
             << shannon_entropy.upper_bound << "\t"
             << min_entropy.lower_bound << "\t" << min_entropy.guess
             << "\t" << min_entropy.upper_bound << "\t"
             << number_of_inputs << "\t" << number_of_outputs << endl;
-
         }
     }
 
@@ -197,6 +196,7 @@ int ndet(CommandLineArguments &arguments, PICounter &counter) {
 
 int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
     cout << "Operation Mode: Unguided (deterministic)" << endl;
+
     uint SO = (uint) 1 << counter.get_output_literals().size();
     //Assume we have 2^|INPUTVARS| possible inputs
     unsigned long int SI = (uint) 1 << counter.get_input_literals().size();
@@ -224,16 +224,16 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
 
         double end = cpuTime();
 
-        if (b) {
-            cout << "There are sill more input/output relations" << endl;
-        } else {
-            cout << "Search was exhaustive" << endl;
-            break;
-        }
-
-        if (cli.verbose()) {
-            cout << "Result: " << ret << "\n";
-        }
+			
+		if (cli.verbose()) {
+			if (b) {
+				cout << "There are sill more input/output relations" << endl;
+			} else {
+				cout << "Search was exhaustive" << endl;
+				break;
+			}
+			cout << "Result: " << ret << "\n";
+		}
 
         auto shannon_e = shannon_entropy(SI, ret);
         auto min_e = min_entropy(SI, ret.size());
@@ -255,10 +255,10 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
             statistics.number_of_outputs = ret.size();
             statistics.cpu_time_consumed = end - start;
             statistics.update(ret, closed );
-            statistics.min_entropy.guess = 0;
             statistics.write();
         }
 
+		if(!b) break;
     }
 
     return 0;
@@ -497,6 +497,7 @@ int run(CommandLineArguments &cli) {
     }
 
     if (cli.has_statistic()) {
+		cout << "write statistics to " << cli.statistic_filename() << endl;
         fstatistics.open(cli.statistic_filename());
         statistics.header();
     }
