@@ -196,7 +196,7 @@ int ndet(CommandLineArguments &arguments, PICounter &counter) {
 }
 
 int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
-    cout << "Operation Mode: DETERMINISTIC SHUFFLE" << endl;
+    cout << "Operation Mode: Unguided (deterministic)" << endl;
     uint SO = (uint) 1 << counter.get_output_literals().size();
     //Assume we have 2^|INPUTVARS| possible inputs
     unsigned long int SI = (uint) 1 << counter.get_input_literals().size();
@@ -239,14 +239,15 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
         auto min_e = min_entropy(SI, ret.size());
         auto leakage = log2(SI) - shannon_entropy(SI, ret);
 
-        vector<vector<string>> results = {
+        if(cli.verbose()) {
+            vector<vector<string>> results = {
                 {"Input Space Size",       atos(SI)},
                 {"Shannon Entropy H(h|l)", atos(shannon_e)},
                 {"Min Entropy",            atos(min_e)},
                 {"Leakage",                atos(leakage)},
-        };
-
-        cout << TB.create_table(results) << endl;
+            };
+            cout << TB.create_table(results) << endl;
+        }
 
         if (cli.has_statistic()) {
             statistics.num_of_iteration = i;
@@ -264,7 +265,7 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
 }
 
 int det_iter(const CommandLineArguments &cli, PICounter &counter) {
-    cout << "Operation Mode: Deterministic ITER" << endl;
+    cout << "Operation Mode: Bucket-wise (deterministic)" << endl;
     //Assume we have 2^|INPUTVARS| possible inputs
     unsigned long int SI = (unsigned long) (1
                                             << counter.get_input_literals().size());
@@ -290,14 +291,15 @@ int det_iter(const CommandLineArguments &cli, PICounter &counter) {
         auto min_e = min_entropy(SI, ret.size());
         auto leakage = log2(SI) - shannon_entropy(SI, ret);
 
-        vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
-                                          {
-                                           "Shannon Entropy H(h|l)", atos(shannon_e)},
-                                          {"Min Entropy",
-                                                                     atos(min_e)},
-                                          {"Leakage",                atos(leakage)},};
+        if(cli.verbose()){
+            vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
+                                              {"Shannon Entropy H(h|l)", atos(shannon_e)},
+                                              {"Min Entropy",
+                                               atos(min_e)},
+                                              {"Leakage",                atos(leakage)},};
 
-        cout << TB.create_table(results) << endl;
+            cout << TB.create_table(results) << endl;
+        }
 
         if (cli.has_statistic()) {
             statistics.num_of_iteration = k;
@@ -339,14 +341,15 @@ int det_sync(const CommandLineArguments &cli, PICounter &counter) {
         auto min_e = min_entropy(SI, ret.size());
         auto leakage = log2(SI) - shannon_entropy(SI, ret);
 
-        if (cli.verbose())
+        if (cli.verbose()){
             cout << "Result: " << ret << "\n";
 
-        vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
-                                          {"Shannon Entropy H(h|l)", atos(shannon_e)},
-                                          {"Min Entropy",            atos(min_e)},
-                                          {"Leakage",                atos(leakage)},};
-        cout << TB.create_table(results) << endl;
+            vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
+                                              {"Shannon Entropy H(h|l)", atos(shannon_e)},
+                                              {"Min Entropy",            atos(min_e)},
+                                              {"Leakage",                atos(leakage)},};
+            cout << TB.create_table(results) << endl;
+        }
 
         if (cli.has_statistic()) {
             statistics.num_of_iteration = i;
