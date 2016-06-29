@@ -45,7 +45,7 @@ public:
     const std::string &statistic_filename()  const { return _stat_filename; }
     const bool has_statistic() const { return statistic_filename().size() > 0;}
 
-    uint limit() const { return _limit; };
+    uint64_t limit() const { return _limit; };
     uint max_models() const { return _max_models; };
     void printUsage();
 
@@ -64,7 +64,7 @@ private:
     bool _verbose;
     bool _help;
     std::string _stat_filename;
-    uint _limit;
+    uint64_t _limit;
     uint _max_models;
     //bool _statistics;
 };
