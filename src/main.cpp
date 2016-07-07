@@ -108,6 +108,7 @@ struct Statistics {
     }
 
     void update(const vector<uint64_t> &buckets, const vector<bool>& closed) {
+		//return;
         shannon_entropy.guess       = ::shannon_entropy(number_of_inputs, buckets);
         shannon_entropy.lower_bound = shannon_entropy_lower_bound(buckets, closed, SI, number_of_inputs);
         shannon_entropy.upper_bound = shannon_entropy_upper_bound(buckets, closed, SI, number_of_inputs);
@@ -118,6 +119,7 @@ struct Statistics {
      * Write the current statistic values into `fstatistics`
      */
     void write() {
+		//return;
         if (fstatistics.is_open()) {
             cout  << num_of_iteration << "\t" << cpu_time_consumed << "\t"
             << shannon_entropy.lower_bound << "\t"
@@ -227,9 +229,9 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
 			
 		if (cli.verbose()) {
 			if (b) {
-				cout << "There are sill more input/output relations" << endl;
+				console() << "There are sill more input/output relations" << endl;
 			} else {
-				cout << "Search was exhaustive" << endl;
+				console() << "Search was exhaustive" << endl;
 				break;
 			}
 			cout << "Result: " << ret << "\n";
@@ -312,12 +314,12 @@ int det_iter(const CommandLineArguments &cli, PICounter &counter) {
         }
 
         if (_user_want_terminate) {
-            cout << "Terminate on user request" << endl;
+            console() << "Terminate on user request" << endl;
             break;
         }
 
 		if(!b) {
-			cout << "Search was exhaustive!" << endl;
+			console() << "Search was exhaustive!" << endl;
 			break;
 		}
     }
@@ -337,7 +339,7 @@ int det_sync(const CommandLineArguments &cli, PICounter &counter) {
 
     auto labels = counter.prepare_sync_counting(closed, ret);
 
-    for (uint i = 0; true /*  i < cli.limit() && b */; i++) {
+    for (uint i = 0; b /*  i < cli.limit() && b */; i++) {
         double start = get_cpu_time();
         b = counter.count_sync(labels, closed, ret);
         double end = get_cpu_time();
@@ -374,7 +376,7 @@ int det_sync(const CommandLineArguments &cli, PICounter &counter) {
     }
 
     if (!b) {
-        cout << "Search was exhaustive" << endl;
+        console() << "Search was exhaustive" << endl;
     }
 
     return 0;
@@ -435,7 +437,7 @@ int det_iter_sharp(CommandLineArguments &cli, PICounter &counter) {
         }
 
 		if(!b) {
-			cout << "Search was exhaustive!" << endl;
+			console() << "Search was exhaustive!" << endl;
 		}
     }
     return 0;
