@@ -208,12 +208,12 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
     vector<bool> closed(SO, false);
     vector<uint64_t> ret(SO, 0);
 
-    cout << "Count Limit: " << cli.limit() << endl;
+    //cout << "Count Limit: " << cli.limit() << endl;
 
     statistics.SO = SO;
     statistics.SI = SI;
 
-    for (uint i = 0; i < cli.limit(); i++) {
+    for (uint i = 0; /*  i < cli.limit() */ true; i++) {
 
         if (_user_want_terminate) // user requested to terminate
             break;
@@ -279,7 +279,7 @@ int det_iter(const CommandLineArguments &cli, PICounter &counter) {
     const vector<bool> closed(false, SI);
 
     bool b = true;
-    for (int k = 1; k <= cli.limit() && b; k++) {
+    for (int k = 1; true /*  k <= cli.limit() && b */; k++) {
         double start = get_cpu_time();
         b = counter.count_det_iter(ret);
         double end = get_cpu_time();
@@ -315,6 +315,11 @@ int det_iter(const CommandLineArguments &cli, PICounter &counter) {
             cout << "Terminate on user request" << endl;
             break;
         }
+
+		if(!b) {
+			cout << "Search was exhaustive!" << endl;
+			break;
+		}
     }
     return 0;
 }
@@ -332,7 +337,7 @@ int det_sync(const CommandLineArguments &cli, PICounter &counter) {
 
     auto labels = counter.prepare_sync_counting(closed, ret);
 
-    for (uint i = 0; i < cli.limit() && b; i++) {
+    for (uint i = 0; true /*  i < cli.limit() && b */; i++) {
         double start = get_cpu_time();
         b = counter.count_sync(labels, closed, ret);
         double end = get_cpu_time();
@@ -391,8 +396,7 @@ int det_iter_sharp(CommandLineArguments &cli, PICounter &counter) {
     const vector<bool> closed(false, SI);
 
     bool b = true;
-    for (int k = 1; k <= cli.limit() && b; k++) {
-
+    for (int k = 1; /* k <= cli.limit() && b */ true; k++) {
         double start = get_cpu_time();
         b = counter.count_det_iter_sharp(ret, cli.input_filename());
         double end = get_cpu_time();
@@ -429,6 +433,10 @@ int det_iter_sharp(CommandLineArguments &cli, PICounter &counter) {
             console() << "Terminate on user request" << endl;
             break;
         }
+
+		if(!b) {
+			cout << "Search was exhaustive!" << endl;
+		}
     }
     return 0;
 }

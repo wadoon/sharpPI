@@ -2,6 +2,10 @@
 sharpPI
 =======
 
+.. note:: 
+   This page is under construction (2016-07-06) for the QASA paper. 
+   Reconstruction will be finished at begin of August.
+
 
 :Author: Alexander Weigl <weigl@kit.edu>
 :Subtitle: fdasfdasf
