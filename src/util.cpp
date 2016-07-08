@@ -130,19 +130,17 @@ template uint64_t sum_buckets<uint64_t>(const vector<uint64_t> &buckets); // exp
 
 long double shannon_entropy_upper_bound(const vector<uint64_t>& buckets,
                                         const vector<bool> &closed,
-                                        uint64_t input_space,
-                                        uint64_t sum){
+                                        const uint64_t input_space,
+                                        const uint64_t sum){
 
     vector<uint64_t> cpy(buckets);
-
-	uint64_t max_id = -1, max_val = -1;
-	for( uint i  = 0; i < buckets.size(); i++) {
-		if(buckets[i]>max_val && !closed[i]) {
+	uint64_t max_id = -1, max_val = 0;
+	for( uint i  = 0; i < cpy.size(); i++) {
+		if(cpy.at(i) > max_val && !closed[i]) {
 			max_id = i; 
-			max_val = buckets[i];
+			max_val = cpy.at(i);
 		}
 	}
-
 	auto residum =  input_space - sum;
 	cpy[max_id] += residum;
 	return shannon_entropy(input_space, cpy);
