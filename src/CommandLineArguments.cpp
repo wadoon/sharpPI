@@ -33,7 +33,7 @@ CommandLineArguments::CommandLineArguments()
 				  //positional
 				  ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
 
-			  ndet.add_options()("s", po::value<StringList>(&_seed_variables)->value_name("variable"), "seed");
+			  ndet.add_options()("seed,s", po::value<StringList>(&_seed_variables)->value_name("variable"), "seed");
 			  ndet.add_options()("density", "density values for each output");
 
 			  general.add(ndet);
