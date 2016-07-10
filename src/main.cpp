@@ -267,40 +267,39 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
 }
 
 int det_iter(const CommandLineArguments &cli, PICounter &counter) {
-    cout << "Operation Mode: Bucket-wise (deterministic)" << endl;
+    console() << "Operation Mode: Bucket-wise (deterministic)" << endl;
     //Assume we have 2^|INPUTVARS| possible inputs
-    unsigned long int SI = (unsigned long) (1
-                                            << counter.get_input_literals().size());
-    unsigned long int SO = (unsigned long) (1
-                                            << counter.get_output_literals().size());
+    unsigned long int SI = (unsigned long) (1 << counter.get_input_literals().size());
+    unsigned long int SO = (unsigned long) (1 << counter.get_output_literals().size());
     statistics.SO = SO;
     statistics.SI = SI;
 
-    vector<uint64_t> ret(SI);
-
-    const vector<bool> closed(false, SI);
+    vector<uint64_t> ret;
+    vector<bool> closed(false, SI);
 
     bool b = true;
     for (int k = 1; true /*  k <= cli.limit() && b */; k++) {
         double start = get_cpu_time();
         b = counter.count_det_iter(ret);
         double end = get_cpu_time();
+		closed[k] = true;
 
-        if (cli.verbose())
-            cout << k << "# Result: " << ret << "\n";
+        if (cli.verbose() ) {
+            console() << k << "# Result: " << ret << "\n";
+		}	
 
         auto shannon_e = shannon_entropy(SI, ret);
         auto min_e = min_entropy(SI, ret.size());
         auto leakage = log2(SI) - shannon_entropy(SI, ret);
 
-        if(cli.verbose()){
+        if(cli.verbose()||!b){
             vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
                                               {"Shannon Entropy H(h|l)", atos(shannon_e)},
                                               {"Min Entropy",
                                                atos(min_e)},
                                               {"Leakage",                atos(leakage)},};
 
-            cout << TB.create_table(results) << endl;
+            console() << TB.create_table(results) << endl;
         }
 
         if (cli.has_statistic()) {
