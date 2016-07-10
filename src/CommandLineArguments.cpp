@@ -15,31 +15,29 @@ typedef std::vector<std::string> StringList;
 CommandLineArguments::CommandLineArguments()
     : _verbose(false), _help(false), //_output_model_filename("model.csv"),
           //_statistics(false),
-          _mode(OPERATION_MODE_DETERMINISTIC),
+      _mode(1),
+      general("General"),
+      ndet("Non-determinism") {
+    general.add_options()
+        ("help,h", "produce help message")
+        ("verbose,v", "verbose mode")
+        //		  ("stat", "enable statistics")
+        ("limit,l", po::value<uint64_t>(&_limit)->value_name("INT")->default_value( (uint64_t) -1 ), "limit rounds")
+        ("mode,m", po::value<uint>(&_mode)->value_name("MODE_ID"), "mode")
+        (",n", po::value<uint>(&_max_models)->value_name("INT")->default_value(-1), "maximum count on models that should be found")
+        ("input,i", po::value<StringList>(&_input_variables)->value_name("VARIABLE"), "input")
+        ("output,o", po::value<StringList>(&_output_variables)->value_name("VARIABLE"), "output")
+        ("statistic", po::value<string>(&_stat_filename)->value_name("FILE")->default_value(""), "statistics filename, default: no statistic is written")
+        //positional
+        ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
 
-		  general("General"),
-		  ndet("Non-determinism") {
+    ndet.add_options()("s", po::value<StringList>(&_seed_variables)->value_name("variable"), "seed");
+    ndet.add_options()("density", "density values for each output");
 
-			  general.add_options()
-				  ("help,h", "produce help message")
-				  ("verbose,v", "verbose mode")
-		//		  ("stat", "enable statistics")
-				  ("limit,l", po::value<uint64_t>(&_limit)->value_name("INT")->default_value( (uint64_t) -1 ), "limit rounds")
-				  ("mode,m", po::value<uint>(&_mode)->value_name("INT"), "mode")
-				  (",n", po::value<uint>(&_max_models)->value_name("INT")->default_value(-1), "maximum count on models that should be found")
-				  ("input,i", po::value<StringList>(&_input_variables)->value_name("VARIABLE"), "input")
-				  ("output,o", po::value<StringList>(&_output_variables)->value_name("VARIABLE"), "output")
-				  ("statistic", po::value<string>(&_stat_filename)->value_name("FILE")->default_value(""), "statistics filename, default: no statistic is written")
-				  //positional
-				  ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
+    general.add(ndet);
 
-			  ndet.add_options()("seed,s", po::value<StringList>(&_seed_variables)->value_name("variable"), "seed");
-			  ndet.add_options()("density", "density values for each output");
-
-			  general.add(ndet);
-
-			  p.add("filename", 1);
-		  }
+    p.add("filename", 1);
+}
 
 void CommandLineArguments::initialize(int argc, char *argv[]) {
     try {
@@ -103,35 +101,32 @@ void CommandLineArguments::initialize(int argc, char *argv[]) {
 
 void CommandLineArguments::printUsage() {
     std::cout << "Usage: " << program_invocation_short_name << " {options} input-file" << endl;
-    std::cout <<
-    general
-    << "\nOperation Modes:\n"
-    << "\t" << OPERATION_MODE_DETERMINISTIC
-    << ": Determinstic (output->input relation)\n"
-    << "\t" << OPERATION_MODE_DETERMINISTIC_ITERATIVE
-    << ": Determinstic ITERATIVE (each output, limitation possible)\n"
-    << "\t" << OPERATION_MODE_DETERMINISTIC_SHUFFLE
-    << ": Determinstic SHUFFLE (find each input/output pair, limitation possible)\n"
-    << "\t" << OPERATION_MODE_DETERMINISTIC_SUCCESSIVE << ": Determinstic SUCCESSIVE ()\n"
-    << "\t" << OPERATION_MODE_NDETERMINISTIC << ": Non-Determinstic\n\n"
-    << "\t" << OPERATION_MODE_SHARPSAT << ": Normal #SAT based on `cr` entries\n\n"
-
-
-    << "\n\nVersion: " << SHARP_PI_VERSION << " / " << SHARP_PI_DATE << endl << endl
-    << TB.create_box(COPYRIGHT, "COPYRIGHT") << std::endl;
+    std::cout << general
+              << "\nOperation Modes:\n"
+              << "\t" << static_cast<int>(OperationMode::DETERMINISTIC)
+              << ": Determinstic (output->input relation)\n"
+              << "\t" << static_cast<int>(OperationMode::DETERMINISTIC_ITERATIVE)
+              << ": Determinstic ITERATIVE (each output, limitation possible)\n"
+              << "\t" << static_cast<int>(OperationMode::DETERMINISTIC_SHUFFLE)
+              << ": Determinstic SHUFFLE (find each input/output pair, limitation possible)\n"
+              << "\t" << static_cast<int>(OperationMode::DETERMINISTIC_SUCCESSIVE) << ": Determinstic SUCCESSIVE ()\n"
+              << "\t" << static_cast<int>(OperationMode::NDETERMINISTIC) << ": Non-Determinstic\n\n"
+              << "\t" << static_cast<int>(OperationMode::SHARPSAT) << ": Normal #SAT based on `cr` entries\n\n"
+              << "\n\nVersion: " << SHARP_PI_VERSION << " / " << SHARP_PI_DATE << endl << endl
+              << TB.create_box(COPYRIGHT, "COPYRIGHT") << std::endl;
     /*
 "-i VARNAME    declares an input variable\n"
     "-o VARNAME    declares an output variable\n"
     "-s VARNAME    declares an seeds variable\n"
     "-v            set verbose outputs/debug messages\n"
     "-c MODE       counting modes\n"
-    "               " << OPERATION_MODE_DETERMINISTIC << ": Determinstic (output->input relation)\n"
-    "               " << OPERATION_MODE_DETERMINISTIC_ITERATIVE <<
+    "               " << OperationMode::DETERMINISTIC << ": Determinstic (output->input relation)\n"
+    "               " << OperationMode::DETERMINISTIC_ITERATIVE <<
 ": Determinstic ITERATIVE (each output, limitation possible)\n"
-    "               " << OPERATION_MODE_DETERMINISTIC_SHUFFLE <<
+    "               " << OperationMode::DETERMINISTIC_SHUFFLE <<
 ": Determinstic SHUFFLE (find each input/output pair, limitation possible)\n"
-    "               " << OPERATION_MODE_DETERMINISTIC_SUCCESSIVE << ": Determinstic SUCCESSIVE ()\n"
-    "               " << OPERATION_MODE_NDETERMINISTIC << ": Non-Determinstic\n"
+    "               " << OperationMode::DETERMINISTIC_SUCCESSIVE << ": Determinstic SUCCESSIVE ()\n"
+    "               " << OperationMode::NDETERMINISTIC << ": Non-Determinstic\n"
 
     "-h            prints this help\n\n\n"
 << endl

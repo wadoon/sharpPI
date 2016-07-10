@@ -47,6 +47,9 @@ ostream& console();
  */
 uint64_t input_space(const vector<uint64_t> &preimages);
 
+uint64_t input_space(const uint64_t num_of_variables) {
+    return (uint) 1 << num_of_variables;
+}
 
 
 /**
