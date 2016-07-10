@@ -14,13 +14,6 @@ using namespace std;
 bool _user_want_terminate = false;
 
 
-
-/**
- * File Stream for writing statistics.
- * Opened if `--stat` is given on the command line.
- */
-ofstream fstatistics;
-
 template<typename T>
 ostream &operator<<(ostream &stream, const vector<T> &v) {
     stream << "[";
@@ -46,6 +39,10 @@ struct Statistics {
         T guess, upper_bound, lower_bound;
     };
 
+    /**
+     *
+     */
+    ofstream fileout;
 
     /**
      * current iteration
@@ -89,11 +86,13 @@ struct Statistics {
      */
     Guess<long double> min_entropy;
 
+
+
     /**
      * Write headers to the statistic file
      */
     void header() {
-        if (fstatistics.is_open()) {
+        if (fileout.is_open()) {
             cout << "number_of_iteration"
                     "\tcpu_time_consumed"
                     "\tshannon_lower"
@@ -107,25 +106,58 @@ struct Statistics {
         }
     }
 
+    void open(const string& filename) {
+        fileout.open(filename);
+        header();
+    }
+
+    void close() {
+        if (fileout.is_open())
+            { fileout.close(); }
+    }
+
     void update(const vector<uint64_t> &buckets, const vector<bool>& closed) {
         shannon_entropy.guess       = ::shannon_entropy(number_of_inputs, buckets);
         shannon_entropy.lower_bound = shannon_entropy_lower_bound(buckets, closed, SI, number_of_inputs);
         shannon_entropy.upper_bound = shannon_entropy_upper_bound(buckets, closed, SI, number_of_inputs);
+        number_of_inputs = sum_buckets(buckets);
+        number_of_outputs = buckets.size();
+        //TODO min entropy
     }
 
+    /**
+     *
+     */
+    void writeconsole() {
+        cout << num_of_iteration
+             << "\t" << cpu_time_consumed
+             << "\t" << shannon_entropy.lower_bound
+             << "\t" << shannon_entropy.guess
+             << "\t" << shannon_entropy.upper_bound
+             << "\t" << min_entropy.lower_bound
+             << "\t" << min_entropy.guess
+             << "\t" << min_entropy.upper_bound
+             << "\t" << number_of_inputs
+             << "\t" << number_of_outputs
+             << endl;
+    }
 
     /**
      * Write the current statistic values into `fstatistics`
      */
     void write() {
-        if (fstatistics.is_open()) {
-            cout  << num_of_iteration << "\t" << cpu_time_consumed << "\t"
-            << shannon_entropy.lower_bound << "\t"
-            << shannon_entropy.guess << "\t"
-            << shannon_entropy.upper_bound << "\t"
-            << min_entropy.lower_bound << "\t" << min_entropy.guess
-            << "\t" << min_entropy.upper_bound << "\t"
-            << number_of_inputs << "\t" << number_of_outputs << endl;
+        if (fileout.is_open()) {
+            fileout  << num_of_iteration
+                     << "\t" << cpu_time_consumed
+                     << "\t" << shannon_entropy.lower_bound
+                     << "\t" << shannon_entropy.guess
+                     << "\t" << shannon_entropy.upper_bound
+                     << "\t" << min_entropy.lower_bound
+                     << "\t" << min_entropy.guess
+                     << "\t" << min_entropy.upper_bound
+                     << "\t" << number_of_inputs
+                     << "\t" << number_of_outputs
+                     << endl;
         }
     }
 
@@ -148,36 +180,51 @@ void install_handler() {
 }
 //endregion
 
+/*class CountingMode {
+    CountingMode(CommandLineArguments &cli, PICounter &counter)
+        : counter(counter), cli(cli) {}
+
+    int operator()() {
+        return 0;
+    }
+    };*/
+
+void write_final_result(uint64_t input_space_size,
+                        long double shannon_entropy,
+                        long double min_entropy) {
+    console()
+        << "Input Space Size"       <<  input_space_size << endl
+        << "Shannon Entropy H(h|l)" <<  shannon_entropy << endl
+        << "Min Entropy"            <<  min_entropy << endl
+        ;//        << "Leakage"                <<  leakage << endl;
+}
+
 /**
  *
  */
 int count_deterministic(CommandLineArguments &cli, PICounter &counter) {
     console() << "Operation Mode: Deterministic NAIVE" << endl;
-    counter.set_verbose(cli.verbose());
+
     vector<uint_fast64_t> ret = counter.count_det_compl();
 
     if (cli.verbose())
         console() << "Result: " << ret << "\n";
 
-    //Assume we have 2^|INPUTVARS| possible inputs
     unsigned long int SI = input_space(ret);
-
     auto shannon_e = shannon_entropy(SI, ret);
     auto min_e = min_entropy(SI, ret.size());
     auto leakage = log2(SI) - shannon_entropy(SI, ret);
 
-    vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
-                                      {"Shannon Entropy H(h|l)", atos(shannon_e)},
-                                      {"Min Entropy",            atos(min_e)},
-                                      {"Leakage",                atos(leakage)},};
-
-    cout << TB.create_table(results) << endl;
+    write_final_result(SI, shannon_e, min_e);
+    return 0;
 }
 
 /**
  *
  */
 int ndet(CommandLineArguments &arguments, PICounter &counter) {
+    console() << "Operation Mode: non-deterministic" << endl;
+
     CounterMatrix m = counter.countrand();
 
     unsigned long SI = m.input_count();
@@ -185,30 +232,22 @@ int ndet(CommandLineArguments &arguments, PICounter &counter) {
     long double min_e = m.min_entropy();
     long double leakage = SI - shannon_e;
 
-    vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
-                                      {"Shannon Entropy H(h|l)", atos(shannon_e)},
-                                      {"Min Entropy",            atos(min_e)},
-                                      {"Leakage",                atos(leakage)},};
-
-    cout << TB.create_table(results) << endl;
+    write_final_result(SI, shannon_e, min_e);
     return 0;
 }
 
 int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
-    cout << "Operation Mode: Unguided (deterministic)" << endl;
+    console() << "Operation Mode: Unguided (deterministic)" << endl;
 
-    uint SO = (uint) 1 << counter.get_output_literals().size();
-    //Assume we have 2^|INPUTVARS| possible inputs
-    unsigned long int SI = (uint) 1 << counter.get_input_literals().size();
+    uint SO = input_space(counter.get_output_literals().size());
+    unsigned long int SI = input_space(counter.get_input_literals().size());
 
     if (SO == 0) {
-        throw logic_error("to much possible outputs (>32)");
+        throw logic_error("to much possible outputs (>2^32)");
     }
 
     vector<bool> closed(SO, false);
     vector<uint64_t> ret(SO, 0);
-
-    //cout << "Count Limit: " << cli.limit() << endl;
 
     statistics.SO = SO;
     statistics.SI = SI;
@@ -219,109 +258,93 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
             break;
 
         double start = cpuTime();
+        bool       b = counter.count_unstructured(ret);
+	double   end = cpuTime();
 
-        bool b = counter.count_unstructured(ret);
-
-        double end = cpuTime();
-
-			
-		if (cli.verbose()) {
-			if (b) {
-				cout << "There are sill more input/output relations" << endl;
-			} else {
-				cout << "Search was exhaustive" << endl;
-				break;
-			}
-			cout << "Result: " << ret << "\n";
+	if (cli.verbose()) {
+		if (b) {
+                    console() << "There are sill more input/output relations" << endl;
+		} else {
+                    console() << "Search was exhaustive" << endl;
 		}
 
-        auto shannon_e = shannon_entropy(SI, ret);
-        auto min_e = min_entropy(SI, ret.size());
-        auto leakage = log2(SI) - shannon_entropy(SI, ret);
+	}
 
-        if(cli.verbose()) {
-            vector<vector<string>> results = {
-                {"Input Space Size",       atos(SI)},
-                {"Shannon Entropy H(h|l)", atos(shannon_e)},
-                {"Min Entropy",            atos(min_e)},
-                {"Leakage",                atos(leakage)},
-            };
-            cout << TB.create_table(results) << endl;
-        }
+	if(cli.verbose() || !b) {
+            auto shannon_e = shannon_entropy(SI, ret);
+            auto min_e = min_entropy(SI, ret.size());
+            auto leakage = log2(SI) - shannon_entropy(SI, ret);
+            write_final_result(SI, shannon_e, min_e);
+	}
 
-        if (cli.has_statistic()) {
+	if (cli.has_statistic()) {
             statistics.num_of_iteration = i;
-            statistics.number_of_inputs = sum_buckets(ret);
-            statistics.number_of_outputs = ret.size();
             statistics.cpu_time_consumed = end - start;
-            statistics.update(ret, closed );
+            statistics.update(ret, closed);
             statistics.write();
-        }
+	}
 
-		if(!b) break;
+	if(!b)
+            break;
     }
 
     return 0;
 }
 
 int det_iter(const CommandLineArguments &cli, PICounter &counter) {
-    cout << "Operation Mode: Bucket-wise (deterministic)" << endl;
-    //Assume we have 2^|INPUTVARS| possible inputs
-    unsigned long int SI = (unsigned long) (1
-                                            << counter.get_input_literals().size());
-    unsigned long int SO = (unsigned long) (1
-                                            << counter.get_output_literals().size());
-    statistics.SO = SO;
-    statistics.SI = SI;
+	cout << "Operation Mode: Bucket-wise (deterministic)" << endl;
+	//Assume we have 2^|INPUTVARS| possible inputs
+	unsigned long int SI = (unsigned long) (1
+			<< counter.get_input_literals().size());
+	unsigned long int SO = (unsigned long) (1
+			<< counter.get_output_literals().size());
+	statistics.SO = SO;
+	statistics.SI = SI;
 
-    vector<uint64_t> ret(SI);
+	vector<uint64_t> ret(SI);
 
-    const vector<bool> closed(false, SI);
+	const vector<bool> closed(false, SI);
 
-    bool b = true;
-    for (int k = 1; true /*  k <= cli.limit() && b */; k++) {
-        double start = get_cpu_time();
-        b = counter.count_det_iter(ret);
-        double end = get_cpu_time();
+	bool b = true;
+	for (int k = 1; true /*  k <= cli.limit() && b */; k++) {
+		double start = get_cpu_time();
+		b = counter.count_det_iter(ret);
+		double end = get_cpu_time();
 
-        if (cli.verbose())
-            cout << k << "# Result: " << ret << "\n";
+		if (cli.verbose())
+			cout << k << "# Result: " << ret << "\n";
 
-        auto shannon_e = shannon_entropy(SI, ret);
-        auto min_e = min_entropy(SI, ret.size());
-        auto leakage = log2(SI) - shannon_entropy(SI, ret);
+		auto shannon_e = shannon_entropy(SI, ret);
+		auto min_e = min_entropy(SI, ret.size());
+		auto leakage = log2(SI) - shannon_entropy(SI, ret);
 
-        if(cli.verbose()){
-            vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
-                                              {"Shannon Entropy H(h|l)", atos(shannon_e)},
-                                              {"Min Entropy",
-                                               atos(min_e)},
-                                              {"Leakage",                atos(leakage)},};
+		if(cli.verbose()){
+                    vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
+                                                      {"Shannon Entropy H(h|l)", atos(shannon_e)},
+                                                      {"Min Entropy",   atos(min_e)},
+                                                      {"Leakage",                atos(leakage)},};
+			cout << TB.create_table(results) << endl;
+		}
 
-            cout << TB.create_table(results) << endl;
-        }
+		if (cli.has_statistic()) {
+			statistics.num_of_iteration = k;
+			statistics.cpu_time_consumed = end - start;
+			statistics.update(ret, closed);
+			statistics.min_entropy.guess = 0;
+			statistics.write();
+		}
 
-        if (cli.has_statistic()) {
-            statistics.num_of_iteration = k;
-            statistics.number_of_inputs = sum_buckets(ret);
-            statistics.number_of_outputs = ret.size();
-            statistics.cpu_time_consumed = end - start;
-            statistics.update(ret, closed);
-            statistics.min_entropy.guess = 0;
-            statistics.write();
-        }
-
-        if (_user_want_terminate) {
-            cout << "Terminate on user request" << endl;
-            break;
-        }
+		if (_user_want_terminate) {
+			cout << "Terminate on user request" << endl;
+			break;
+		}
 
 		if(!b) {
 			cout << "Search was exhaustive!" << endl;
 			break;
 		}
-    }
-    return 0;
+	}
+	return 0;
 }
 
 int det_sync(const CommandLineArguments &cli, PICounter &counter) {
@@ -358,8 +381,6 @@ int det_sync(const CommandLineArguments &cli, PICounter &counter) {
 
         if (cli.has_statistic()) {
             statistics.num_of_iteration = i;
-            statistics.number_of_inputs = sum_buckets(ret);
-            statistics.number_of_outputs = ret.size();
             statistics.cpu_time_consumed = end - start;
             statistics.update(ret, closed);
             statistics.min_entropy.guess = 0;
@@ -420,8 +441,6 @@ int det_iter_sharp(CommandLineArguments &cli, PICounter &counter) {
 
         if (cli.has_statistic()) {
             statistics.num_of_iteration = k;
-            statistics.number_of_inputs = sum_buckets(ret);
-            statistics.number_of_outputs = ret.size();
             statistics.cpu_time_consumed = end - start;
             statistics.update(ret, closed);
             statistics.min_entropy.guess = 0;
@@ -505,41 +524,37 @@ int run(CommandLineArguments &cli) {
     }
 
     if (cli.has_statistic()) {
-		cout << "write statistics to " << cli.statistic_filename() << endl;
-        fstatistics.open(cli.statistic_filename());
-        statistics.header();
+        console() << "write statistics to " << cli.statistic_filename() << endl;
+        statistics.open(cli.statistic_filename());
     }
 
     counter.set_verbose(cli.verbose());
 
     switch (cli.mode()) {
-        case OPERATION_MODE_DETERMINISTIC:
+    case OperationMode::DETERMINISTIC:
             return count_deterministic(cli, counter);
 
-        case OPERATION_MODE_NDETERMINISTIC:
+    case OperationMode::NDETERMINISTIC:
             return ndet(cli, counter);
 
-        case OPERATION_MODE_DETERMINISTIC_ITERATIVE:
-            return det_iter(cli, counter);
+    case OperationMode::DETERMINISTIC_ITERATIVE:
+        return det_iter(cli, counter);
 
-        case OPERATION_MODE_DETERMINISTIC_SUCCESSIVE:
-            return det_sync(cli, counter);
+    case OperationMode::DETERMINISTIC_SUCCESSIVE:
+        return det_sync(cli, counter);
 
-        case OPERATION_MODE_DETERMINISTIC_SHUFFLE:
-            return det_shuffle(cli, counter);
+    case OperationMode::DETERMINISTIC_SHUFFLE:
+        return det_shuffle(cli, counter);
 
-        case OPERATION_MODE_DETERMINISTIC_ITERATIVE_SHARP:
-            return det_iter_sharp(cli, counter);
+    case OperationMode::ITERATIVE_SHARP:
+        return det_iter_sharp(cli, counter);
 
-        case OPERATION_MODE_SHARPSAT:
-            cout << "PROGRAMING ERROR THIS CASE SHOULD HANDLE BEFORE." << endl;
-            break;
+    case OperationMode::SHARPSAT:
+        cout << "PROGRAMING ERROR THIS CASE SHOULD HANDLE BEFORE." << endl;
+        break;
     }
 
-    if (cli.has_statistic()) {
-        fstatistics.close();
-    }
-
+    statistics.close();
     return 0;
 }
 
@@ -555,7 +570,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    if (commandLineArguments.mode() == OPERATION_MODE_SHARPSAT) {
+    if (commandLineArguments.mode() == OperationMode::SHARPSAT) {
         return count_sat(commandLineArguments);
     } else {
         return run(commandLineArguments);
