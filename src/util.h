@@ -37,6 +37,10 @@ ostream& debug();
 ostream& console();
 
 
+//#define TIME_START() double __START__ = clock();
+//#define TIME_END(str) printf("%s: %f s\n", str, (clock() - __START__)/(double) CLOCKS_PER_SEC);
+//#define TIME_START() time_t __START__ = time(NULL);
+//#define TIME_END(str) printf("%s: %f s\n", str, (time(NULL) - __START__));
 
 /**
  *

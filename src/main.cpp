@@ -2,6 +2,7 @@
 
 #include "termbox.h"
 #include "CommandLineArguments.h"
+#include "cbmcparser.h"
 #include "util.h"
 #include "PICounter.h"
 
@@ -119,8 +120,27 @@ struct Statistics {
         shannon_entropy.guess       = ::shannon_entropy(number_of_inputs, buckets);
         shannon_entropy.lower_bound = shannon_entropy_lower_bound(buckets, closed, SI, number_of_inputs);
         shannon_entropy.upper_bound = shannon_entropy_upper_bound(buckets, closed, SI, number_of_inputs);
+        number_of_inputs = sum_buckets(buckets);
+        number_of_outputs = buckets.size();
+        //TODO min entropy
     }
 
+    /**
+     *
+     */
+    void writeconsole() {
+        cout << num_of_iteration
+             << "\t" << cpu_time_consumed
+             << "\t" << shannon_entropy.lower_bound
+             << "\t" << shannon_entropy.guess
+             << "\t" << shannon_entropy.upper_bound
+             << "\t" << min_entropy.lower_bound
+             << "\t" << min_entropy.guess
+             << "\t" << min_entropy.upper_bound
+             << "\t" << number_of_inputs
+             << "\t" << number_of_outputs
+             << endl;
+    }
 
     /**
      * Write the current statistic values into `fstatistics`
@@ -404,7 +424,8 @@ int det_iter_sharp(CommandLineArguments &cli, PICounter &counter) {
     statistics.SO = SO;
     statistics.SI = SI;
 
-    Buckets ret;
+    vector<uint64_t> ret;
+    const vector<bool> closed(false, SI);
 
     bool b = true;
     for (int k = 1; /* k <= cli.limit() && b */ true; k++) {
