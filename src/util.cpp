@@ -9,7 +9,6 @@
 #include <locale>
 #include <chrono>
 #include <iostream>
-#include <queue>
 #include <algorithm>
 
 using namespace std;
@@ -98,75 +97,4 @@ double get_cpu_time() {
     int r = getrusage(RUSAGE_SELF, usage);
     return (double) usage->ru_utime.tv_sec + (double) usage->ru_utime.tv_usec * .000001;
 }
-#endif 
-
-template<typename T>
-T sum_buckets(const vector<T> &buckets) {
-    return accumulate(buckets.begin(), buckets.end(), 0);
-}
-
-template uint64_t sum_buckets<uint64_t>(const vector<uint64_t> &buckets); // explicit instantiation.
-
-
-long double shannon_entropy_upper_bound(const vector<uint64_t>& buckets,
-                                        const vector<bool> &closed,
-                                        const uint64_t input_space,
-                                        const uint64_t sum){
-
-    vector<uint64_t> cpy(buckets);
-	uint64_t max_id = -1, max_val = 0;
-	for( uint i  = 0; i < cpy.size(); i++) {
-		if(cpy.at(i) > max_val && !closed[i]) {
-			max_id = i; 
-			max_val = cpy.at(i);
-		}
-	}
-	auto residum =  input_space - sum;
-	cpy[max_id] += residum;
-	return shannon_entropy(input_space, cpy);
-}
-
-long double shannon_entropy_lower_bound(const vector<uint64_t>& buckets,
-		const vector<bool> &closed,
-		uint64_t input_space,
-		uint64_t sum) {
-
-
-	vector<uint64_t> fix(buckets.size());
-	vector<uint64_t> rest(buckets.size());
-	
-	//split histogram into to parts
-	// fix are closed buckets (untouchable)
-	// rest are allowed to add values
-    for( uint i  = 0; i < buckets.size(); i++) {                                                                                                                                                                                         
-		if(closed[i]) 
-			fix.push_back(buckets[i]);
-		else
-			rest.push_back(buckets[i]);
-		
-	}
-
-			
-    priority_queue<uint64_t, vector<uint64_t>, greater<uint64_t>> pqrest(rest.begin(), rest.end());
-			
-	auto residum=  input_space - sum;
-
-    while(residum > 0) {
-		//equalize between the two smallest elements
-        uint64_t min1 = pqrest.top();
-        pqrest.pop();
-
-        uint64_t min2 = pqrest.top();
-
-        auto add = min(residum, min2 - min1 + 1);
-
-        pqrest.push(min1+add);
-        residum -= add;
-    }
-
-
-	fix.insert(fix.end(), rest.begin(), rest.end());
-    return shannon_entropy(input_space, fix);
-}
-
-
+#endif

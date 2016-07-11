@@ -2,7 +2,6 @@
 
 #include "termbox.h"
 #include "CommandLineArguments.h"
-#include "cbmc/cbmcparser.h"
 #include "util.h"
 #include "PICounter.h"
 
@@ -116,7 +115,7 @@ struct Statistics {
             { fileout.close(); }
     }
 
-    void update(const vector<uint64_t> &buckets, const vector<bool>& closed) {
+    void update(const Buckets& buckets) {
         shannon_entropy.guess       = ::shannon_entropy(number_of_inputs, buckets);
         shannon_entropy.lower_bound = shannon_entropy_lower_bound(buckets, closed, SI, number_of_inputs);
         shannon_entropy.upper_bound = shannon_entropy_upper_bound(buckets, closed, SI, number_of_inputs);
@@ -182,7 +181,7 @@ void write_final_result(uint64_t input_space_size,
 int count_deterministic(CommandLineArguments &cli, PICounter &counter) {
     console() << "Operation Mode: Deterministic NAIVE" << endl;
 
-    vector<uint_fast64_t> ret = counter.count_det_compl();
+    auto ret = counter.count_det_compl();
 
     if (cli.verbose())
         console() << "Result: " << ret << "\n";
@@ -225,8 +224,7 @@ int det_shuffle(const CommandLineArguments &cli, PICounter &counter) {
         throw logic_error("to much possible outputs (>2^32)");
     }
 
-    vector<bool> closed(SO, false);
-    vector<uint64_t> ret(SO, 0);
+    Buckets ret(S0, {0,false});
 
     //cout << "Count Limit: " << cli.limit() << endl;
 
@@ -284,7 +282,7 @@ int det_iter(const CommandLineArguments &cli, PICounter &counter) {
 	statistics.SO = SO;
 	statistics.SI = SI;
 
-	vector<uint64_t> ret(SI);
+	Buckets ret(SI);
 
 	const vector<bool> closed(false, SI);
 
@@ -346,7 +344,7 @@ int det_sync(const CommandLineArguments &cli, PICounter &counter) {
     statistics.SI = SI;
 
     vector<bool> closed;
-    vector<uint64_t> ret;
+    Buckets ret;
     bool b = true;
 
     auto labels = counter.prepare_sync_counting(closed, ret);
@@ -406,8 +404,7 @@ int det_iter_sharp(CommandLineArguments &cli, PICounter &counter) {
     statistics.SO = SO;
     statistics.SI = SI;
 
-    vector<uint64_t> ret;
-    const vector<bool> closed(false, SI);
+    Buckets ret;
 
     bool b = true;
     for (int k = 1; /* k <= cli.limit() && b */ true; k++) {

@@ -5,9 +5,9 @@
 #include "PICounter.h"
 #include <iostream>
 #include "entropy.h"
+#include "util.h"
 
 extern bool _user_want_terminate;
-
 
 void create_assumption(const vector<Var> &vars, uint64_t value,
                        vector<Lit> &assum) {
@@ -72,8 +72,8 @@ void PICounter::write_input() {
     model_stream << value << " ";
 }
 
-vector<uint64_t> PICounter::count_det_compl() {
-    vector<uint64_t> found_preimage_sizes;
+Buckets PICounter::count_bucket_all() {
+    Buckets found_preimage_sizes;
     bool b = true;
     while (b) {
         b = count_det_iter(found_preimage_sizes);
@@ -81,7 +81,7 @@ vector<uint64_t> PICounter::count_det_compl() {
     return found_preimage_sizes;
 }
 
-bool PICounter::count_det_iter(vector<uint64_t> &previous) {
+bool PICounter::count_one_bucket(Buckets& previous) {
     vector<Lit> assum;
 
     if (solver->solve(assum)) {
@@ -138,8 +138,8 @@ bool PICounter::count_det_iter(vector<uint64_t> &previous) {
 
 #include "sharpsat.h"
 
-bool PICounter::count_det_iter_sharp(vector<uint64_t> &previous,
-                                     const string &filename) {
+bool PICounter::count_one_bucket_sharp(Buckets& previous,
+                                       const string &filename) {
     vector<Lit> assum;
 
     DSharpSAT sharpSAT;
@@ -179,8 +179,7 @@ vector<Lit> negate_cube(vector<Lit> cube) {
 }
 
 
-LabelList PICounter::prepare_sync_counting(vector<bool> &closed,
-                                           vector<uint64_t> &count_table) {
+LabelList PICounter::prepare_sync_counting(Buckets& buckets) {
 
     LabelList label_literals;
     std::vector<Lit> assump;
@@ -217,9 +216,7 @@ LabelList PICounter::prepare_sync_counting(vector<bool> &closed,
     return label_literals;
 }
 
-bool PICounter::count_sync(LabelList &labels,
-                           vector<bool> &closed,
-                           vector<uint64_t> &count_table) {
+bool PICounter::count_sync(LabelList &labels, Buckets& buckets) {
     bool one_open = false;
 
     //forbid every clause, by adding positive label literal
@@ -255,8 +252,7 @@ bool PICounter::count_sync(LabelList &labels,
     return one_open;
 }
 
-bool PICounter::count_unstructured(uint64_t limit,
-                                   vector<uint64_t> &count_table) {
+bool PICounter::count_unguided(Buckets& buckets) {
     vector<Lit> assum;
     for (uint64_t i = 0; i < limit; i++) {
         if (!count_unstructured(count_table))
@@ -265,7 +261,7 @@ bool PICounter::count_unstructured(uint64_t limit,
     return true;
 }
 
-bool PICounter::count_unstructured(vector<uint64_t> &count_table) {
+bool PICounter::count_unstructured_one(Buckets& buckets) {
     if (solver->solve()) {
         uint output = (uint) interpret(_output_literals);
         prohibit_project(_input_literals);
@@ -275,37 +271,29 @@ bool PICounter::count_unstructured(vector<uint64_t> &count_table) {
     return false;
 }
 
-CounterMatrix PICounter::countrand() {
-    vector<uint64_t> found_preimage_sizes;
+CounterMatrix PICounter::count_ndet() {
+    Buckets found_preimage_sizes;
     vector<Lit> assum;
-
     vector<Var> seed_and_input;
 
-	for(auto& v: _input_literals) {
-		seed_and_input.push_back(v);
-	}
+    for(auto& v: _input_literals) {
+        seed_and_input.push_back(v);
+    }
 
-	for(auto& v: _seed_literals) {
-		seed_and_input.push_back(v);
-	}
+    for(auto& v: _seed_literals) {
+        seed_and_input.push_back(v);
+    }
 
-	/*
-		seed_and_input.insert(seed_and_input.cbegin(), _input_literals.cbegin(),
-		_input_literals.cend());
 
-		seed_and_input.insert(seed_and_input.cbegin(), _seed_literals.cbegin(),
-		_seed_literals.cend());
-		*/
+    CounterMatrix cm(_input_literals.size(), _output_literals.size());
 
-	CounterMatrix cm(_input_literals.size(), _output_literals.size());
-
-	while (solver->solve(assum)) {
-		write_output();
+    while (solver->solve(assum)) {
+        write_output();
         if (verbose) {
             std::cout << "Output: " << std::endl;
             for (auto &var : _output_variables) {
                 std::cout << "\t" << var.variable_name << "[" << var.time
-                << "] = " << interpret(var.positions) << std::endl;
+                          << "] = " << interpret(var.positions) << std::endl;
             }
         }
 
@@ -321,14 +309,14 @@ CounterMatrix PICounter::countrand() {
                 std::cout << "\t\tInput: " << std::endl;
                 for (auto &var : _input_variables) {
                     std::cout << "\t\t\t" << var.variable_name << "["
-                    << var.time << "] = " << interpret(var.positions)
-                    << std::endl;
+                              << var.time << "] = " << interpret(var.positions)
+                              << std::endl;
                 }
 
                 for (auto &var : _seed_variables) {
                     std::cout << "\t\t\t" << var.variable_name << "["
-                    << var.time << "] = " << interpret(var.positions)
-                    << std::endl;
+                              << var.time << "] = " << interpret(var.positions)
+                              << std::endl;
                 }
             }
 
@@ -342,6 +330,7 @@ CounterMatrix PICounter::countrand() {
 
             //exclude the found input pattern
             a = solver->solve(assum);
+
         } while (a);
 
         found_preimage_sizes.push_back(pi);

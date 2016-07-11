@@ -7,6 +7,7 @@
 #include <vector>
 #include <cmath>
 #include <fstream>
+#include "util.h"
 
 #include <Eigen/Core>
 

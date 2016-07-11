@@ -15,7 +15,6 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 find_package( Boost COMPONENTS program_options regex filesystem system REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
-add_subdirectory(cbmc)
 add_subdirectory(minisat)
 add_subdirectory(glucose)
 

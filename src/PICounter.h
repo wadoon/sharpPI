@@ -81,7 +81,8 @@ public:
         this->verbose = b;
     }
 
-    vector<uint64_t> count_det_compl();
+    Buckets PICounter::count_bucket_all();
+
 
     uint64_t count_sat(uint64_t max_count = -1);
 
