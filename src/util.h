@@ -37,19 +37,38 @@ ostream& debug();
 ostream& console();
 
 
-//#define TIME_START() double __START__ = clock();
-//#define TIME_END(str) printf("%s: %f s\n", str, (clock() - __START__)/(double) CLOCKS_PER_SEC);
-//#define TIME_START() time_t __START__ = time(NULL);
-//#define TIME_END(str) printf("%s: %f s\n", str, (time(NULL) - __START__));
 
+/**
+ *
+ */
+template<typename T>
+struct _Bucket {
+    /**
+     *
+     */
+    T size;
+
+    /**
+     *
+     */
+    bool closed;
+};
+
+/**
+ *
+ */
+typedef _Bucket<uint64_t> Bucket;
 
 /**
  */
-uint64_t input_space(const vector<uint64_t> &preimages);
+typedef std::vector<Bucket> Buckets;
 
-uint64_t input_space(const uint64_t num_of_variables) {
-    return (uint) 1 << num_of_variables;
-}
+
+/**
+ *
+ *
+ */
+uint64_t space_size(const uint64_t num_of_variables);
 
 
 /**

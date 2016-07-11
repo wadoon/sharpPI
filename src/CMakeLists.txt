@@ -19,9 +19,12 @@ add_subdirectory(cbmc)
 add_subdirectory(minisat)
 add_subdirectory(glucose)
 
-set(SOURCE_FILES main.cpp util.cpp termbox.cpp
-        sharpsat.cpp sat.cpp
-        CommandLineArguments.cpp PICounter.cpp entropy.cpp)
+set(SOURCE_FILES
+  main.cpp util.cpp termbox.cpp
+  sharpsat.cpp sat.cpp
+  cbmcparser.cpp
+  dimacsparser.cpp
+  CommandLineArguments.cpp PICounter.cpp entropy.cpp)
 
 #-- --------------------------------------------------------------------------------------------------------------------
 add_executable(sharpPI ${SOURCE_FILES})

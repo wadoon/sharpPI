@@ -2,4 +2,4 @@ image: kaskada/cmake-gcc5
 
 build_local:
   type: build
-  script: "mkdir build && cd build && cmake .. && make -j 4"
+  script: "mkdir build && cd build && cmake ../src && make -j 5"

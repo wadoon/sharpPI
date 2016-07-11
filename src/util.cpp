@@ -14,29 +14,8 @@
 
 using namespace std;
 
-//TODO move to entropy.h
-uint64_t input_space(const vector<uint64_t> &preimages) {
-    long sum = 0;
-    for (int i = 0; i < preimages.size(); ++i) {
-        sum += preimages[i];
-    }
-    return sum;
-}
-
-long double shannon_entropy(uint64_t SI, const vector<uint64_t> &C) {
-    long double sum = 0;
-    for (auto v : C)
-        if (v != 0 && v != 1)
-            sum += v * log2(v);
-    return (1.0 / SI) * sum;
-}
-
-long double min_entropy(long int SI, long n) {
-    return log2(SI) - log2(n);
-}
-
-
 const auto PROGRAM_START_TIME = chrono::high_resolution_clock::now();
+
 ostream& console() {
     auto current_time = chrono::high_resolution_clock::now();
     auto difference = chrono::duration_cast<std::chrono::milliseconds>(
@@ -55,6 +34,7 @@ ostream& console() {
 
 
 const bool DEBUG = true;
+
 ostream& debug() {
     if(DEBUG) {
         return console();

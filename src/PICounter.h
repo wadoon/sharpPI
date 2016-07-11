@@ -31,32 +31,6 @@ using namespace std;
 using LabelList = std::vector<std::pair<uint64_t, Var>>;
 
 
-/**
- *
- */
-template<typename T>
-struct _Bucket {
-    /**
-     *
-     */
-    T num_of_elements;
-
-    /**
-     *
-     */
-    bool closed;
-};
-
-/**
- *
- */
-typedef _Bucket<uint32_t> Bucket;
-
-/**
- */
-typedef std::vector<Bucket> Buckets;
-
-
 class PICounter {
 public:
 

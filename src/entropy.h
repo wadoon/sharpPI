@@ -2,9 +2,7 @@
 // Created by weigl on 15.10.15.
 //
 
-#ifndef SHARPPIC_ENTROPY_H
-#define SHARPPIC_ENTROPY_H
-
+#pragma once
 
 #include <vector>
 #include <cmath>
@@ -18,6 +16,42 @@ using Eigen::VectorXd;
 using namespace Eigen;
 
 using namespace std;
+
+uint64_t space_size(const uint64_t num_of_variables);
+
+
+/**
+ *
+ *
+ */
+long double shannon_entropy(uint64_t SI, const vector<uint64_t> &C);
+
+/**
+ *
+ */
+long double min_entropy(long int SI, long n);
+
+
+/**
+ *
+ *
+ */
+template<typename T>
+T sum_buckets(const vector<T> &buckets) {
+    return accumulate(buckets.begin(), buckets.end(), 0);
+}
+template uint64_t sum_buckets<uint64_t>(const vector<uint64_t> &buckets); // explicit instantiation.
+
+
+
+long double shannon_entropy_upper_bound(const Buckets& buckets,
+                                        uint64_t allpreimages,
+                                        uint64_t countedpreimages);
+
+long double shannon_entropy_lower_bound(const Buckets& buckets,
+                                        uint64_t allpreimages,
+                                        uint64_t countedpreimages);
+
 
 class CounterMatrix {
 
@@ -82,6 +116,3 @@ protected:
      */
     bool verbose = false;
 };
-
-
-#endif //SHARPPIC_ENTROPY_H
