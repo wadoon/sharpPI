@@ -47,6 +47,7 @@ std::istream& operator>>(std::istream& in, OperationMode& mode)
                                 (boost::program_options::validation_error::invalid_option_value, "mode", token);
                         }
                     }
+    //    std::cout << "Mode: " << static_cast<int>(mode) << endl;
     return in;
 }
 

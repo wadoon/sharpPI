@@ -350,6 +350,10 @@ void PICounter::activate(const vector<vector<int>> &clauses, int max_var) {
         }
         solver->add_clause(lclause);
     }
+
+    //MinisatInterface* solver = dynamic_cast<MinisatInterface*>(this->solver);
+    //for(Var v : _input_literals)
+    //solver->solver.setDecisionVar(v, false);
 }
 
 void MinisatInterface::ensure_variables(int max_var) {

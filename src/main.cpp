@@ -298,7 +298,7 @@ int det_unguided(const CommandLineArguments &cli, PICounter &counter) {
 }
 
 int det_bucket(const CommandLineArguments &cli, PICounter &counter) {
-	cout << "Operation Mode: Bucket-wise (deterministic)" << endl;
+        console() << "Operation Mode: Bucket-wise (deterministic)" << endl;
 	//Assume we have 2^|INPUTVARS| possible inputs
 	const auto SI = space_size(counter.get_input_literals().size());
 	const auto SO = space_size(counter.get_output_literals().size());
@@ -315,18 +315,19 @@ int det_bucket(const CommandLineArguments &cli, PICounter &counter) {
             b = counter.count_one_bucket(ret);
             double end = get_cpu_time();
 
-            if (cli.verbose())
-                cout << k << "# Result: " << ret << "\n";
+            //            if (cli.verbose())
+            //    cout << k << "# Result: " << ret << "\n";
 
-            auto shannon_e = shannon_entropy(SI, ret);
-            auto min_e = min_entropy(SI, ret.size());
-            auto leakage = log2(SI) - shannon_entropy(SI, ret);
 
             if(cli.verbose()){
-                vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
-                                                  {"Shannon Entropy H(h|l)", atos(shannon_e)},
-                                                  {"Min Entropy",   atos(min_e)},
-                                                  {"Leakage",                atos(leakage)},};
+                auto shannon_e = shannon_entropy(SI, ret);
+                auto min_e = min_entropy(SI, ret.size());
+                auto leakage = log2(SI) - shannon_entropy(SI, ret);
+
+                cout << k << "# Result: " <<
+                    "Shannon Entropy H(h|l)" << shannon_e
+                     << endl;
+
                 //cout << TB.create_table(results) << endl;
             }
 
@@ -471,6 +472,8 @@ int det_bucket_sharp(CommandLineArguments &cli, PICounter &counter) {
  *
  */
 int count_sat(CommandLineArguments &cli) {
+    console() << "Mode: #SAT" << endl;
+
     DimacsParser parser(cli.input_filename());
     parser.read();
     PICounter counter;
@@ -484,10 +487,8 @@ int count_sat(CommandLineArguments &cli) {
     counter.activate(parser.clauses(), parser.max_variable());
 
     if (cli.verbose()) {
-        console()  << "Number of Variables: " << parser.max_variable() << std::endl;
-        console() << "Number of Clauses: " << parser.clauses().size()
-        << std::endl;
-
+        console() << "Number of Variables: "  << parser.max_variable()      << std::endl;
+        console() << "Number of Clauses: "    << parser.clauses().size()    << std::endl;
         console() << "Projection Variables: " << parser.projection_corpus() << std::endl;
     }
 
@@ -504,6 +505,9 @@ int run(CommandLineArguments &cli) {
     parser.read();
 
     PICounter counter;
+    auto solver = new MinisatInterface();
+    counter.set_solver(solver);
+
 
     counter.set_output_model(cli.statistic_filename());
 
@@ -514,9 +518,6 @@ int run(CommandLineArguments &cli) {
     counter.set_input_literals(parser.ivars());
     counter.set_output_literals(parser.ovars());
     counter.set_seed_literals(parser.svars());
-
-    auto solver = new MinisatInterface();
-    counter.set_solver(solver);
 
     counter.activate(parser.clauses(), parser.max_variable());
 
@@ -582,6 +583,7 @@ int main(int argc, char *argv[]) {
         commandLineArguments.printUsage();
         return 0;
     }
+
 
     if (commandLineArguments.mode() == OperationMode::SHARPSAT) {
         return count_sat(commandLineArguments);

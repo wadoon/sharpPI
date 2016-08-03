@@ -19,7 +19,7 @@ enum class OperationMode {
         DSYNC = 'S',
         NRAND = 'N',
         DSHARP = 'T',
-        SHARPSAT = 'B',
+        SHARPSAT = 'X',
         DISHARP = 'I'};
 
 class CommandLineArguments {
