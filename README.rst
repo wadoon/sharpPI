@@ -1,24 +1,18 @@
-=======
-sharpPI
-=======
+=======================
+sharpPI -- Version: 1.0
+=======================
 
 .. note:: 
    This page is under construction (2016-07-06) for the QASA paper. 
    Reconstruction will be finished at begin of August.
 
 
-:Author: Alexander Weigl <weigl@kit.edu>
-:Subtitle: fdasfdasf
-:Date:   2016-06-15
-:Copyright: GPL version 3
-:Version: 0.10.0
-:Manual section: 1
-:Manual group: text processing
-
 SYNOPSIS
 ========
 
-    sharpPI [-h|--help] {variables} filename
+
+
+    sharpPI [-h|--help] {-i variables}* {-o variable}*  [-s variables]* filename
 
 
 DESCRIPTION
@@ -32,11 +26,13 @@ fdasf
 General
 -------
 
---help, -h                 Outputs a help message
+--help, -h  Outputs a help message
 
---verbose, -v              Activates the verbose, found input and output values are printed to the terminal.
+--verbose, -v   Activates the verbose, found input and output values are printed to the terminal.
 
---limit, -l INTEGER  Limits the the count of runs within the iterations modes. For support of the modes see below.
+--limit NUMBER, -l NUMBER  Limits the the count of runs within the iterations modes. For support of the modes see below.
+
+--precision FLOAT, -p FLOAT  abort if upper - lower < FLOAT
 
 --mode M, -m M  Sets the operation mode `M`, see below for more information about the modes below.
 
@@ -79,7 +75,8 @@ Operation Modes
 Getting Started
 ===============
 
-1. Additional to `make` and `gcc`, you need to install `cmake` and development packages for `boost` `eigen3` and `zlib`.  On Fedora 23 use::
+1. Additional to `make` and `gcc`, you need to install `cmake` and development
+   packages for `boost` `eigen3` and `zlib`. On Fedora 23 use::
 
      sudo dnf install cmake eigen3-devel boost-devel zlib-devel
 
@@ -100,16 +97,18 @@ The `sharpPI` is in `build/`.
 Problems
 ========
 
+
+
 Changelog
 =========
+
 
 See also
 ========
 
-* `Minisat <>`_
-* `Glucose <>`_
-* `dsharp <>`_
-* `clasp <>`_
+* `Minisat <http://minisat.se>`_
+* `Glucose <http://glucose.fr>`_
+* `dsharp <http://tu-dresden.de>`_
 
 Copyright
 =========

@@ -76,7 +76,7 @@ Buckets PICounter::count_bucket_all() {
     Buckets found_preimage_sizes;
     bool b = true;
     while (b) {
-        b = count_det_iter(found_preimage_sizes);
+        b = count_one_bucket(found_preimage_sizes);
     }
     return found_preimage_sizes;
 }
@@ -127,7 +127,7 @@ bool PICounter::count_one_bucket(Buckets& previous) {
             a = solver->solve(assum);
         } while (a);
 
-        previous.push_back(pi);
+        previous.push_back({pi,true});
 
         //optional exclude output
         prohibit_project(_output_literals);
@@ -161,7 +161,7 @@ bool PICounter::count_one_bucket_sharp(Buckets& previous,
 
         //        Bucket b = {pi, true};
 
-        previous.push_back(pi);
+        previous.push_back({pi,true});
 
         //optional exclude output
         prohibit_project(_output_literals);
@@ -177,7 +177,6 @@ vector<Lit> negate_cube(vector<Lit> cube) {
     }
     return clause;
 }
-
 
 LabelList PICounter::prepare_sync_counting(Buckets& buckets) {
 
@@ -203,10 +202,8 @@ LabelList PICounter::prepare_sync_counting(Buckets& buckets) {
 
         auto output = interpret(_output_literals);
 
-        closed.push_back(false);
-
         // book the found input right
-        count_table.push_back(1);
+        buckets.push_back({1,false});
         prohibit_project(_input_literals);
 
         //save label literals
@@ -216,7 +213,7 @@ LabelList PICounter::prepare_sync_counting(Buckets& buckets) {
     return label_literals;
 }
 
-bool PICounter::count_sync(LabelList &labels, Buckets& buckets) {
+bool PICounter::count_sync(const LabelList &labels, Buckets& buckets) {
     bool one_open = false;
 
     //forbid every clause, by adding positive label literal
@@ -227,7 +224,7 @@ bool PICounter::count_sync(LabelList &labels, Buckets& buckets) {
 
 
     for(int i = 0; i < labels.size(); i++) {
-        if(closed[i])
+        if(buckets[i].closed)
             continue;
 
         //enable this output
@@ -239,11 +236,11 @@ bool PICounter::count_sync(LabelList &labels, Buckets& buckets) {
 
             //book input
             prohibit_project(_input_literals);
-            count_table[i] += 1;
+            buckets[i].size += 1;
 
             one_open=true;
         }else{
-            closed[i] = true;
+            buckets[i].closed = true;
         }
 
         //disable this  output
@@ -254,8 +251,8 @@ bool PICounter::count_sync(LabelList &labels, Buckets& buckets) {
 
 bool PICounter::count_unguided(Buckets& buckets) {
     vector<Lit> assum;
-    for (uint64_t i = 0; i < limit; i++) {
-        if (!count_unstructured(count_table))
+    while(true){//for (uint64_t i = 0; i < limit; i++) {
+        if (!count_unstructured_one(buckets))
             return false;
     }
     return true;
@@ -265,14 +262,13 @@ bool PICounter::count_unstructured_one(Buckets& buckets) {
     if (solver->solve()) {
         uint output = (uint) interpret(_output_literals);
         prohibit_project(_input_literals);
-        count_table.at(output) += 1;
+        buckets[output].size++;
         return true;
     }
     return false;
 }
 
-CounterMatrix PICounter::count_ndet() {
-    Buckets found_preimage_sizes;
+CounterMatrix PICounter::count_rand() {
     vector<Lit> assum;
     vector<Var> seed_and_input;
 
@@ -332,8 +328,6 @@ CounterMatrix PICounter::count_ndet() {
             a = solver->solve(assum);
 
         } while (a);
-
-        found_preimage_sizes.push_back(pi);
 
         //optional exclude output
         prohibit_project(_output_literals);

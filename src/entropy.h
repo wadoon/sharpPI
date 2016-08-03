@@ -29,6 +29,13 @@ long double shannon_entropy(uint64_t SI, const vector<uint64_t> &C);
 
 /**
  *
+ *
+ */
+long double shannon_entropy(uint64_t SI, const Buckets&);
+
+
+/**
+ *
  */
 long double min_entropy(long int SI, long n);
 
@@ -42,6 +49,16 @@ T sum_buckets(const vector<T> &buckets) {
     return accumulate(buckets.begin(), buckets.end(), 0);
 }
 template uint64_t sum_buckets<uint64_t>(const vector<uint64_t> &buckets); // explicit instantiation.
+
+template<typename T>
+T sum_buckets(const vector<_Bucket<T>> &buckets) {
+    T sum;
+    for(auto& b : buckets) {
+        sum+=b.size;
+    }
+    return sum;
+
+}
 
 
 

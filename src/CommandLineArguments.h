@@ -6,20 +6,21 @@
 
 #include <vector>
 #include <string>
-#include "main.h"
+#include "version.h"
 
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
 
 enum class OperationMode {
-        DETERMINISTIC = 'A',
-        DETERMINISTIC_ITERATIVE = 'B',
-        DETERMINISTIC_SHUFFLE = 'U',
-        DETERMINISTIC_SUCCESSIVE = 'S',
-        NDETERMINISTIC = 'N',
-        SHARPSAT = 'T',
-        ITERATIVE_SHARP = 'I'};
+    DBUCKETALL = 'A',
+        DBUCKET = 'B',
+        DUNGUIDED = 'U',
+        DSYNC = 'S',
+        NRAND = 'N',
+        DSHARP = 'T',
+        SHARPSAT = 'B',
+        DISHARP = 'I'};
 
 class CommandLineArguments {
 public:
@@ -58,7 +59,7 @@ private:
     //---
 
     std::vector<std::string> _input_variables, _output_variables, _seed_variables;
-    /*OperationMode*/ uint _mode;
+    OperationMode _mode;
     std::string _input_filename;
     bool _verbose;
     bool _help;

@@ -81,31 +81,32 @@ public:
         this->verbose = b;
     }
 
-    Buckets PICounter::count_bucket_all();
+    Buckets count_bucket_all();
 
+    bool count_one_bucket(Buckets& previous);
+
+    bool count_one_bucket_sharp(Buckets& previous, const string &filename);
 
     uint64_t count_sat(uint64_t max_count = -1);
 
     bool count_det_iter(vector<uint64_t> &previous);
 
-    LabelList prepare_sync_counting(vector<bool>&,
-                                    vector<uint64_t>&);
+    LabelList prepare_sync_counting(Buckets& buckets);
 
-    bool count_sync(LabelList& labels,
-                        vector<bool> &closed,
-                        vector<uint64_t> &count_table);
+    bool count_sync(const LabelList& labels, Buckets& buckets);
 
-    bool count_unstructured(uint64_t limit, vector<uint64_t> &count_table);
+    bool count_unguided(Buckets& buckets);
 
-    bool count_unstructured(vector<uint64_t> &count_table);
+    bool count_unstructured_one(Buckets& buckets);
 
-    CounterMatrix countrand();
+    CounterMatrix count_rand();
 
     void set_solver(SolverInterface *s) {
         if (this->solver != nullptr)
             delete this->solver;
         this->solver = s;
     }
+
 
     /**
      *

@@ -17,6 +17,7 @@ long double shannon_entropy(uint64_t SI, const vector<uint64_t> &C) {
     return (1.0 / SI) * sum;
 }
 
+
 long double min_entropy(long int SI, long n) {
     return log2(SI) - log2(n);
 }
