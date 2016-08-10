@@ -6,6 +6,7 @@
 #include <iostream>
 #include "entropy.h"
 #include "util.h"
+#include "stat.h"
 
 extern bool _user_want_terminate;
 
@@ -278,8 +279,6 @@ CounterMatrix PICounter::count_rand() {
 
     for(auto& v: _seed_literals) {
         seed_and_input.push_back(v);
-    }
-
 
     CounterMatrix cm(_input_literals.size(), _output_literals.size());
 
@@ -338,6 +337,7 @@ CounterMatrix PICounter::count_rand() {
 
     return cm;
 }
+}
 
 void PICounter::activate(const vector<vector<int>> &clauses, int max_var) {
     solver->ensure_variables(max_var);
@@ -351,9 +351,11 @@ void PICounter::activate(const vector<vector<int>> &clauses, int max_var) {
         solver->add_clause(lclause);
     }
 
-    //MinisatInterface* solver = dynamic_cast<MinisatInterface*>(this->solver);
-    //for(Var v : _input_literals)
-    //solver->solver.setDecisionVar(v, false);
+#ifdef DECISION_NOT_ON_INPUTS
+    MinisatInterface* solver = dynamic_cast<MinisatInterface*>(this->solver);
+    for(Var v : _input_literals)
+    	solver->solver.setDecisionVar(v, false);
+#endif
 }
 
 void MinisatInterface::ensure_variables(int max_var) {

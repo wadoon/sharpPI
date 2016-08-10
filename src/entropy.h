@@ -11,6 +11,8 @@
 
 #include <Eigen/Core>
 
+#include <numeric>
+
 using Eigen::MatrixXd;
 using Eigen::MatrixXi;
 using Eigen::VectorXd;
