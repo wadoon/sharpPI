@@ -1,5 +1,8 @@
 #include <iostream>
 
+using namespace std;
+
+
 #include "CommandLineArguments.h"
 #include "cbmcparser.h"
 #include "util.h"
@@ -8,9 +11,6 @@
 
 #include "stat.h"
 
-using namespace std;
-
-Statistics statistics;
 
 /**
  * true if the user want to terminate this program.
@@ -18,24 +18,6 @@ Statistics statistics;
 bool _user_want_terminate = false;
 
 
-template<typename T>
-ostream& operator<<(ostream& stream, const _Bucket<T> &b) {
-    stream << "{" << b.size << ", " << b.closed << "}";
-    return stream;
-}
-
-template<typename T>
-ostream &operator<<(ostream &stream, const vector<T> &v) {
-    stream << "[";
-    for (int i = 0; i < v.size(); ++i) {
-        stream << v[i];
-        if (i < v.size() - 1)
-            stream << ", ";
-    }
-    stream << "]";
-
-    return stream;
-}
 
 
 
@@ -115,8 +97,8 @@ int ndet(CommandLineArguments &arguments, PICounter &counter) {
 int det_unguided(const CommandLineArguments &cli, PICounter &counter) {
     console() << "Operation Mode: Unguided (deterministic)" << endl;
 
-    uint SO = space_size(counter.get_output_literals().size());
-    uint SI = space_size(counter.get_input_literals().size());
+    const auto SO = space_size(counter.get_output_literals().size());
+    const auto SI = space_size(counter.get_input_literals().size());
 
     if (SO == 0) {
         throw logic_error("to much possible outputs (>2^32)");
@@ -126,8 +108,8 @@ int det_unguided(const CommandLineArguments &cli, PICounter &counter) {
 
     //cout << "Count Limit: " << cli.limit() << endl;
 
-    statistics.SO = SO;
-    statistics.SI = SI;
+    counter.stat().SO = SO;
+    counter.stat().SI = SI;
 
     for (uint i = 0; /*  i < cli.limit() */ true; i++) {
 
@@ -154,17 +136,9 @@ int det_unguided(const CommandLineArguments &cli, PICounter &counter) {
             write_final_result(SI, shannon_e, min_e);
 	}
 
-	if (cli.has_statistic()) {
-            statistics.num_of_iteration = i;
-            statistics.number_of_inputs = sum_buckets(ret);
-            statistics.number_of_outputs = ret.size();
-            statistics.cpu_time_consumed = end - start;
-            statistics.update(ret);
-            statistics.write();
-	}
-
-	if(!b)
+	if(!b) {
             break;
+        }
     }
 
     return 0;
@@ -172,23 +146,20 @@ int det_unguided(const CommandLineArguments &cli, PICounter &counter) {
 
 int det_bucket(const CommandLineArguments &cli, PICounter &counter) {
         console() << "Operation Mode: Bucket-wise (deterministic)" << endl;
-	//Assume we have 2^|INPUTVARS| possible inputs
 	const auto SI = space_size(counter.get_input_literals().size());
 	const auto SO = space_size(counter.get_output_literals().size());
 
-	statistics.SO = SO;
-	statistics.SI = SI;
+	counter.stat().SO = SO;
+	counter.stat().SI = SI;
 
-	Buckets ret(min(SI,SO));
+	Buckets ret;
 
 	bool b = true;
 
 	for (int k = 1; true /*  k <= cli.limit() && b */; k++) {
-            double start = get_cpu_time();
             b = counter.count_one_bucket(ret);
-            double end = get_cpu_time();
 
-            //            if (cli.verbose())
+            // if (cli.verbose())
             //    cout << k << "# Result: " << ret << "\n";
 
 
@@ -204,14 +175,6 @@ int det_bucket(const CommandLineArguments &cli, PICounter &counter) {
                 //cout << TB.create_table(results) << endl;
             }
 
-            if (cli.has_statistic()) {
-                statistics.num_of_iteration = k;
-                statistics.cpu_time_consumed = end - start;
-                statistics.update(ret);
-                statistics.min_entropy.guess = 0;
-                statistics.write();
-            }
-
 
             if (_user_want_terminate) {
                 cout << "Terminate on user request" << endl;
@@ -223,15 +186,17 @@ int det_bucket(const CommandLineArguments &cli, PICounter &counter) {
                 break;
             }
 	}
+
 	return 0;
 }
 
 int det_sync(const CommandLineArguments &cli, PICounter &counter) {
     cout << "OperationMode: Synced Counting" << endl;
-    const unsigned long SO = 1u << counter.get_output_literals().size();
-    const unsigned long SI = 1u << counter.get_input_literals().size();
-    statistics.SO = SO;
-    statistics.SI = SI;
+    const auto SO = 1u << counter.get_output_literals().size();
+    const auto SI = 1u << counter.get_input_literals().size();
+
+    counter.stat().SO = SO;
+    counter.stat().SI = SI;
 
     Buckets ret;
     bool b = true;
@@ -239,9 +204,7 @@ int det_sync(const CommandLineArguments &cli, PICounter &counter) {
     auto labels = counter.prepare_sync_counting(ret);
 
     for (uint i = 0; true /*  i < cli.limit() && b */; i++) {
-        double start = get_cpu_time();
         b = counter.count_sync(labels, ret);
-        double end = get_cpu_time();
 
         auto shannon_e = shannon_entropy(SI, ret);
         auto min_e = min_entropy(SI, ret.size());
@@ -256,17 +219,6 @@ int det_sync(const CommandLineArguments &cli, PICounter &counter) {
                                               {"Leakage",                atos(leakage)},};
             //            cout << TB.create_table(results) << endl;
         }
-
-        if (cli.has_statistic()) {
-            statistics.num_of_iteration = i;
-            statistics.number_of_inputs = sum_buckets(ret);
-            statistics.number_of_outputs = ret.size();
-            statistics.cpu_time_consumed = end - start;
-            statistics.update(ret);
-            statistics.min_entropy.guess = 0;
-            statistics.write();
-        }
-
 
         if (_user_want_terminate) {
             console() << "Terminate on user request" << endl;
@@ -289,44 +241,18 @@ int det_bucket_sharp(CommandLineArguments &cli, PICounter &counter) {
     const uint64_t SI = space_size(counter.get_input_literals().size());
     const uint64_t SO = space_size(counter.get_output_literals().size());
 
-    statistics.SO = SO;
-    statistics.SI = SI;
+    counter.stat().SO = SO;
+    counter.stat().SI = SI;
 
     Buckets ret;
 
     bool b = true;
     for (int k = 1; /* k <= cli.limit() && b */ true; k++) {
-        double start = get_cpu_time();
         b = counter.count_one_bucket_sharp(ret, cli.input_filename());
-        double end = get_cpu_time();
 
         if (cli.verbose()) {
             console() << k << "# Result: " << ret << "\n";
         }
-
-        auto shannon_e = shannon_entropy(SI, ret);
-        auto min_e = min_entropy(SI, ret.size());
-        auto leakage = log2(SI) - shannon_entropy(SI, ret);
-
-        vector<vector<string>> results = {{"Input Space Size",       atos(SI)},
-                                          {
-                                              "Shannon Entropy H(h|l)", atos(shannon_e)},
-                                          {"Min Entropy",
-                                           atos(min_e)},
-                                          {"Leakage",                atos(leakage)},};
-
-        //cout << TB.create_table(results) << endl;
-
-        if (cli.has_statistic()) {
-            statistics.num_of_iteration = k;
-            statistics.number_of_inputs = sum_buckets(ret);
-            statistics.number_of_outputs = ret.size();
-            statistics.cpu_time_consumed = end - start;
-            statistics.update(ret);
-            statistics.min_entropy.guess = 0;
-            statistics.write();
-        }
-
 
         if (_user_want_terminate) {
             console() << "Terminate on user request" << endl;
@@ -335,8 +261,10 @@ int det_bucket_sharp(CommandLineArguments &cli, PICounter &counter) {
 
         if(!b) {
             cout << "Search was exhaustive!" << endl;
+            break;
         }
     }
+
     return 0;
 }
 
@@ -351,7 +279,6 @@ int count_sat(CommandLineArguments &cli) {
     parser.read();
     PICounter counter;
 
-    counter.set_output_model(cli.statistic_filename());
     counter.set_output_literals(parser.projection_corpus());
 
     auto solver = new MinisatInterface();
@@ -366,8 +293,12 @@ int count_sat(CommandLineArguments &cli) {
     }
 
     counter.set_verbose(cli.verbose());
-
     auto count = counter.count_sat(cli.max_models());
+
+    if(_user_want_terminate) {
+        console() << "User terminated " << endl;
+    }
+
     console() << "Model count: " << count << endl;
     return 0;
 }
@@ -380,9 +311,6 @@ int run(CommandLineArguments &cli) {
     PICounter counter;
     auto solver = new MinisatInterface();
     counter.set_solver(solver);
-
-
-    counter.set_output_model(cli.statistic_filename());
 
     counter.set_input_variables(parser.input_variables());
     counter.set_output_variables(parser.output_variables());
@@ -405,7 +333,7 @@ int run(CommandLineArguments &cli) {
 
     if (cli.has_statistic()) {
         console() << "write statistics to " << cli.statistic_filename() << endl;
-        statistics.open(cli.statistic_filename());
+        counter.enable_stat(cli.statistic_filename());
     }
 
     counter.set_verbose(cli.verbose());
@@ -434,7 +362,7 @@ int run(CommandLineArguments &cli) {
         break;
     }
 
-    statistics.close();
+
     return 0;
 }
 

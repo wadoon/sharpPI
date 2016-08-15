@@ -1,14 +1,14 @@
-#pragma once 
+#pragma once
 
 #include <stdint.h>
 #include <iostream>
-
 #include "sat.h"
 
 /**
  *
  */
-struct Statistics {
+class Statistic {
+public:
     /**
      *
      */
@@ -68,20 +68,23 @@ struct Statistics {
     /**
      * TODO SAT solver statistics
      */
-    int restarts,	
+    int restarts,
 	conflict,
 	decisions,
 	decisions_rnd,
-	propagations, 
+	propagations,
 	conflict_literals;
-    
+
+    uint64_t sat_calls, sat_time;
+
 
     /**
      * Write headers to the statistic file
      */
     void header() {
         if (fileout.is_open()) {
-            cout << "number_of_iteration"
+            fileout
+                << "number_of_iteration"
                     "\tcpu_time_consumed"
                     "\tshannon_lower"
                     "\tshannon_guess"
@@ -90,7 +93,16 @@ struct Statistics {
                     "\tmin_guess"
                     "\tmin_upper"
                     "\tnumber_of_inputs"
-                    "\tnumber_of_outputs" << endl;
+                    "\tnumber_of_outputs"
+                    "\trestarts"
+                    "\tconflict"
+                    "\tdecisions"
+                    "\tdecisions_rnd"
+                    "\tpropagations"
+                    "\tconflict_literals"
+                    "\tsat_calls"
+                    "\tsat_time"
+                << endl;
         }
     }
 
@@ -100,8 +112,9 @@ struct Statistics {
     }
 
     void close() {
-        if (fileout.is_open())
-            { fileout.close(); }
+        if (fileout.is_open()) {
+            fileout.close();
+        }
     }
 
     void update(const Buckets& buckets) {
@@ -113,20 +126,26 @@ struct Statistics {
         //TODO min entropy
     }
 
-    void update(Solver& solver) {
-     restarts   =  solver.starts;
-     conflict   = solver.conflicts;
-     decisions  = solver.decisions; 
-     decisions_rnd = solver.rnd_decisions;
-     propagations    = solver.propagations;
-     conflict_literals = solver.tot_literals;
+    void update(const MinisatInterface* solver) {
+        sat_calls = solver->sat_calls;
+        sat_time  = solver->last_sat_time;
+        update(solver->solver);
+    }
+
+    void update(const Solver& solver) {
+        restarts          = solver.starts;
+        conflict          = solver.conflicts;
+        decisions         = solver.decisions;
+        decisions_rnd     = solver.rnd_decisions;
+        propagations      = solver.propagations;
+        conflict_literals = solver.tot_literals;
     }
 
     /**
      *
      */
     void writeconsole() {
-        cout << num_of_iteration
+        std::cout << num_of_iteration
              << "\t" << cpu_time_consumed
              << "\t" << shannon_entropy.lower_bound
              << "\t" << shannon_entropy.guess
@@ -144,15 +163,26 @@ struct Statistics {
      */
     void write() {
         if (fileout.is_open()) {
-            cout  << num_of_iteration << "\t" << cpu_time_consumed << "\t"
-                  << shannon_entropy.lower_bound << "\t"
-                  << shannon_entropy.guess << "\t"
-                  << shannon_entropy.upper_bound << "\t"
-                  << min_entropy.lower_bound << "\t" << min_entropy.guess
-                  << "\t" << min_entropy.upper_bound << "\t"
-                  << number_of_inputs << "\t" << number_of_outputs << endl;
+            fileout  << num_of_iteration
+                     << "\t" << cpu_time_consumed
+                     << "\t" << shannon_entropy.lower_bound
+                     << "\t" << shannon_entropy.guess
+                     << "\t" << shannon_entropy.upper_bound
+                     << "\t" << min_entropy.lower_bound
+                     << "\t" << min_entropy.guess
+                     << "\t" << min_entropy.upper_bound
+                     << "\t" << number_of_inputs
+                     << "\t" << number_of_outputs
+                     << "\t" << restarts
+                     << "\t" << conflict
+                     << "\t" << decisions
+                     << "\t" << decisions_rnd
+                     << "\t" << propagations
+                     << "\t" << conflict_literals
+                     << "\t" << sat_calls
+                     << "\t" << sat_time
+                     << endl;
         }
     }
 
 };
-

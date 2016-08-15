@@ -11,6 +11,7 @@
 #include <vector>
 #include "cbmcparser.h"
 #include "entropy.h"
+#include "util.h"
 
 
 #ifdef GLUCOSE
@@ -78,12 +79,17 @@ public:
     }
 
     virtual bool solve(const vector<Lit> &assumptions) {
+        sat_calls++;
         vec<Lit> v;
         ensure(convert(assumptions, v));
-        return solver.solve(v);
+        auto start = get_time();
+        bool b =  solver.solve(v);
+        last_sat_time = start - get_time();
+        return b;
     }
 
     virtual bool solve() {
+        sat_calls++;
         return solver.solve();
     }
 
@@ -101,7 +107,7 @@ public:
 
 
 public:
+    uint64_t sat_calls, last_sat_time;
     Solver solver;
-
     void ensure_variables(int max_var);
 };

@@ -53,37 +53,37 @@ long double shannon_entropy_upper_bound(const Buckets& buckets,
 long double shannon_entropy_lower_bound(const Buckets& buckets,
                                         uint64_t allpreimages,
                                         uint64_t countedpreimages) {
-    vector<uint64_t> fix(buckets.size());
-    vector<uint64_t> rest(buckets.size());
+    vector<uint64_t> fix;
+    vector<uint64_t> rest;
 
     //split histogram into to parts
     // fix are closed buckets (untouchable)
     // rest are allowed to add values
-    for( uint i  = 0; i < buckets.size(); i++) {
-        if(buckets[i].closed)
-            fix.push_back(buckets[i].size);
+    for(auto bucket : buckets) {
+        if(bucket.closed)
+            fix.push_back(bucket.size);
         else
-            rest.push_back(buckets[i].size);
+            rest.push_back(bucket.size);
     }
 
+    if(rest.size() > 0) {
+        priority_queue<uint64_t, vector<uint64_t>, greater<uint64_t>> pqrest(rest.begin(), rest.end());
 
-    priority_queue<uint64_t, vector<uint64_t>, greater<uint64_t>> pqrest(rest.begin(), rest.end());
+        int64_t residum =  allpreimages - countedpreimages;
 
-    auto residum =  allpreimages - countedpreimages;
+        while(residum > 0) {
+            //equalize between the two smallest elements
+            uint64_t min1 = pqrest.top();
+            pqrest.pop();
 
-    while(residum > 0) {
-        //equalize between the two smallest elements
-        uint64_t min1 = pqrest.top();
-        pqrest.pop();
+            uint64_t min2 = pqrest.top();
 
-        uint64_t min2 = pqrest.top();
+            auto add = min(residum, (int64_t) (min2 - min1 + 1));
 
-        auto add = min(residum, min2 - min1 + 1);
-
-        pqrest.push(min1+add);
-        residum -= add;
+            pqrest.push(min1+add);
+            residum -= add;
+        }
     }
-
 
     fix.insert(fix.end(), rest.begin(), rest.end());
     return shannon_entropy(allpreimages, fix);

@@ -1,23 +1,27 @@
 //
 // Created by weigl on 11.10.15.
 //
+#include <iostream>
 
 #include "PICounter.h"
-#include <iostream>
 #include "entropy.h"
 #include "util.h"
 #include "stat.h"
+#include "sharpsat.h"
+
 
 extern bool _user_want_terminate;
 
-void create_assumption(const vector<Var> &vars, uint64_t value,
+/*
+void create_assumption(const vector<Var> &vars,
+                       uint64_t value,
                        vector<Lit> &assum) {
     for (Var var : vars) {
         bool b = (value & 1) > 0;
         assum.push_back(mkLit(var, b));
         value >>= 1;
     }
-}
+    }*/
 
 /**
  *
@@ -64,13 +68,13 @@ vector<Lit> PICounter::project_model(const vector<Var> &variables) {
 }
 
 void PICounter::write_output() {
-    auto value = interpret(_output_literals);
-    model_stream << "\n" << value << " ";
+    //auto value = interpret(_output_literals);
+    //model_stream << "\n" << value << " ";
 }
 
 void PICounter::write_input() {
-    auto value = interpret(_input_literals);
-    model_stream << value << " ";
+    //auto value = interpret(_input_literals);
+    //model_stream << value << " ";
 }
 
 Buckets PICounter::count_bucket_all() {
@@ -82,27 +86,37 @@ Buckets PICounter::count_bucket_all() {
     return found_preimage_sizes;
 }
 
+void PICounter::stat_point(const Buckets& result) {
+    _stat.update(result);
+    _stat.update(solver);
+}
+
 bool PICounter::count_one_bucket(Buckets& previous) {
     vector<Lit> assum;
 
-    if (solver->solve(assum)) {
-        write_output();
+    if(solver->solve(assum)) {
+        //write_output();
         if (verbose) {
             std::cout << "Output: " << std::endl;
             for (auto &var : _output_variables) {
-                std::cout << "\t" << var.variable_name << "[" << var.time
-                << "] = " << interpret(var.positions) << std::endl;
+                std::cout <<
+                    "\t" << var.variable_name
+                         << "[" << var.time << "] = "
+                         << interpret(var.positions)
+                         << std::endl;
             }
         }
+
+        int i = 15234234;
 
         // we fixate the found output
         assum = project_model(_output_literals);
 
-        uint64_t pi = 0;
-
+        previous.push_back({1,false});
+        Bucket& bucket = previous.back();
         bool a;
-        do {
 
+        do {
             if (verbose) {
                 std::cout << "\t\tInput: " << std::endl;
                 for (auto &var : _input_variables) {
@@ -118,17 +132,16 @@ bool PICounter::count_one_bucket(Buckets& previous) {
                 }
             }
 
-            write_input();
-
-            pi++; // we found the first model, already
-
+            //write_input();
+            bucket.size++; // we found the first model, already
             prohibit_project(_input_literals);
+            stat_point(previous);
 
             //exclude the found input pattern
             a = solver->solve(assum);
         } while (a);
 
-        previous.push_back({pi,true});
+
 
         //optional exclude output
         prohibit_project(_output_literals);
@@ -137,7 +150,6 @@ bool PICounter::count_one_bucket(Buckets& previous) {
     return false;
 }
 
-#include "sharpsat.h"
 
 bool PICounter::count_one_bucket_sharp(Buckets& previous,
                                        const string &filename) {
@@ -180,7 +192,6 @@ vector<Lit> negate_cube(vector<Lit> cube) {
 }
 
 LabelList PICounter::prepare_sync_counting(Buckets& buckets) {
-
     LabelList label_literals;
     std::vector<Lit> assump;
     //    std::fill(closed.begin(), closed.end(), true);
@@ -252,10 +263,12 @@ bool PICounter::count_sync(const LabelList &labels, Buckets& buckets) {
 
 bool PICounter::count_unguided(Buckets& buckets) {
     vector<Lit> assum;
+    stat_point(buckets);
     while(true){//for (uint64_t i = 0; i < limit; i++) {
         if (!count_unstructured_one(buckets))
             return false;
     }
+    stat_point(buckets);
     return true;
 }
 
@@ -369,14 +382,18 @@ uint64_t PICounter::count_sat( uint64_t max_count ) {
     if (_output_literals.size() == 0) {
         for (int i = 1; i < solver->num_variables(); i++)
             _output_literals.push_back(i);
+
+        if(verbose) {
+            console() << "No projection found. Project all variables!" << endl;
+        }
     }
 
     while (solver->solve() && ! _user_want_terminate ) {
         ++pi;
         prohibit_project(_output_literals);
-
-		if(pi >= max_count)
-			break;
+        if(pi >= max_count)
+            break;
     }
+
     return pi;
 }

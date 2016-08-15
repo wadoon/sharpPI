@@ -27,6 +27,8 @@ using namespace Minisat;
 using namespace std;
 
 #include "sat.h"
+#include "stat.h"
+
 
 using LabelList = std::vector<std::pair<uint64_t, Var>>;
 
@@ -35,7 +37,11 @@ class PICounter {
 public:
 
     PICounter() :
-            solver(nullptr) {
+    solver(nullptr)
+    { }
+
+    ~PICounter() {
+        _stat.close();
     }
 
     void prohibit_project(const vector<Var> &solver);
@@ -101,7 +107,7 @@ public:
 
     CounterMatrix count_rand();
 
-    void set_solver(SolverInterface *s) {
+    void set_solver(MinisatInterface *s) {
         if (this->solver != nullptr)
             delete this->solver;
         this->solver = s;
@@ -150,10 +156,6 @@ public:
         PICounter::_input_variables = _input_variables;
     }
 
-    void set_output_model(const string &filename) {
-        model_stream.open(filename);
-    }
-
     void set_seed_variables(const vector<CBMCVariable> &seedvar) {
         _seed_variables = seedvar;
     }
@@ -161,8 +163,18 @@ public:
     bool count_det_iter_sharp(vector<uint64_t>& previous,
                               const std::string& dimacs_filename);
 
+
+    void enable_stat(const string& filename) {
+        _stat.open(filename);
+    }
+
+    Statistic& stat() { return _stat; }
+
 private:
-    SolverInterface *solver;
+    Statistic _stat;
+
+    //SolverInterface *solver;
+    MinisatInterface *solver;
 
 
     std::vector<CBMCVariable> _output_variables;
@@ -173,12 +185,11 @@ private:
     std::vector<Var> _output_literals;
     std::vector<Var> _seed_literals;
 
-    std::ofstream model_stream;
-
     bool verbose;
 
     void write_input();
 
     void write_output();
 
+    void stat_point(const Buckets& result);
 };

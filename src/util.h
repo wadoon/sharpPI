@@ -7,6 +7,8 @@
 #include <vector>
 #include <cmath>
 #include <sstream>
+#include <boost/chrono.hpp>
+
 
 #ifdef GLUCOSE
 #include "glucose/core/Solver.h"
@@ -18,29 +20,12 @@ using namespace Minisat;
 
 using namespace std;
 
-#define START_TIME(name) double __timer##name cpuTime();
-#define END_TIME(name) printf("%s: %f s\n", str, cpuTime() - __START__)
 
-/**
- */
-double get_wall_time();
+uint64_t get_time();
 
-
-/**
- */
-double get_cpu_time();
-
-
-/**
- */
 ostream& debug();
 ostream& console();
 
-
-//#define TIME_START() double __START__ = clock();
-//#define TIME_END(str) printf("%s: %f s\n", str, (clock() - __START__)/(double) CLOCKS_PER_SEC);
-//#define TIME_START() time_t __START__ = time(NULL);
-//#define TIME_END(str) printf("%s: %f s\n", str, (time(NULL) - __START__));
 
 /**
  *
@@ -111,3 +96,27 @@ long double shannon_entropy_upper_bound(const vector<uint64_t>& buckets,
                                         const vector<bool> &closed,
                                         uint64_t input_space,
                                         uint64_t reached_inputs);
+
+
+/**
+ * I/O
+ */
+
+template<typename T>
+ostream& operator<<(std::ostream& stream, const _Bucket<T> &b) {
+    stream << "{" << b.size << ", " << b.closed << "}";
+    return stream;
+}
+
+template<typename T>
+ostream &operator<<(std::ostream &stream, const std::vector<T> &v) {
+    stream << "[";
+    for (int i = 0; i < v.size(); ++i) {
+        stream << v[i];
+        if (i < v.size() - 1)
+            stream << ", ";
+    }
+    stream << "]";
+
+    return stream;
+}
