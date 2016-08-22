@@ -26,6 +26,8 @@ uint64_t get_time();
 ostream& debug();
 ostream& console();
 
+#include <chrono>
+uint64_t get_time_diff(chrono::high_resolution_clock::time_point& p);
 
 /**
  *

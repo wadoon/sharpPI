@@ -14,6 +14,8 @@
 #include "util.h"
 
 
+#include <chrono>
+
 #ifdef GLUCOSE
 using namespace Glucose;
 #else
@@ -60,7 +62,7 @@ inline Var convert(const vector<T> &a, vec<T> &b) {
 class MinisatInterface : public SolverInterface {
 public:
     MinisatInterface() :
-            solver() {
+        solver(), last_sat_time(0), sat_calls(0) {
     }
 
     ~MinisatInterface() {
@@ -82,9 +84,9 @@ public:
         sat_calls++;
         vec<Lit> v;
         ensure(convert(assumptions, v));
-        auto start = get_time();
+        auto start = chrono::high_resolution_clock::now();
         bool b =  solver.solve(v);
-        last_sat_time = start - get_time();
+        last_sat_time = get_time_diff(start);
         return b;
     }
 

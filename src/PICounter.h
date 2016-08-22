@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <zlib.h>
 #include <vector>
+#include <chrono>
 #include "cbmcparser.h"
 #include "entropy.h"
 
@@ -38,7 +39,7 @@ public:
 
     PICounter() :
     solver(nullptr)
-    { }
+    { last = chrono::high_resolution_clock::now(); }
 
     ~PICounter() {
         _stat.close();
@@ -186,6 +187,9 @@ private:
     std::vector<Var> _seed_literals;
 
     bool verbose;
+
+
+    chrono::high_resolution_clock::time_point last;
 
     void write_input();
 

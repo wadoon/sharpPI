@@ -12,17 +12,6 @@
 
 extern bool _user_want_terminate;
 
-/*
-void create_assumption(const vector<Var> &vars,
-                       uint64_t value,
-                       vector<Lit> &assum) {
-    for (Var var : vars) {
-        bool b = (value & 1) > 0;
-        assum.push_back(mkLit(var, b));
-        value >>= 1;
-    }
-    }*/
-
 /**
  *
  *
@@ -86,9 +75,12 @@ Buckets PICounter::count_bucket_all() {
     return found_preimage_sizes;
 }
 
+
 void PICounter::stat_point(const Buckets& result) {
+    _stat.cpu_time_consumed = get_time_diff(last);
     _stat.update(result);
     _stat.update(solver);
+    _stat.write();
 }
 
 bool PICounter::count_one_bucket(Buckets& previous) {

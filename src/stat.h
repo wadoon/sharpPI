@@ -79,6 +79,13 @@ public:
 
 
     /**
+     *
+     */
+    Statistic()
+        : num_of_iteration(0) {}
+
+
+    /**
      * Write headers to the statistic file
      */
     void header() {
@@ -119,11 +126,23 @@ public:
 
     void update(const Buckets& buckets) {
         shannon_entropy.guess       = ::shannon_entropy(number_of_inputs, buckets);
-        shannon_entropy.lower_bound = shannon_entropy_lower_bound(buckets, SI, number_of_inputs);
-        shannon_entropy.upper_bound = shannon_entropy_upper_bound(buckets, SI, number_of_inputs);
+
+        shannon_entropy.lower_bound = shannon_entropy_lower_bound
+            (buckets, SI, number_of_inputs);
+
+        shannon_entropy.upper_bound = shannon_entropy_upper_bound
+            (buckets, SI, number_of_inputs);
+
         number_of_inputs = sum_buckets(buckets);
         number_of_outputs = buckets.size();
-        //TODO min entropy
+
+        min_entropy.guess       = ::min_entropy(SI, number_of_outputs);
+        min_entropy.lower_bound = 0;
+        min_entropy.upper_bound = 0;
+
+
+
+
     }
 
     void update(const MinisatInterface* solver) {
@@ -182,6 +201,7 @@ public:
                      << "\t" << sat_calls
                      << "\t" << sat_time
                      << endl;
+            num_of_iteration++;
         }
     }
 

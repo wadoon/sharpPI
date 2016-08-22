@@ -44,7 +44,14 @@ ostream& debug() {
 }
 
 uint64_t get_time() {
-    auto now = steady_clock::now();
-    auto duration = now.time_since_epoch();
+    const auto now = chrono::high_resolution_clock::now();
+    const auto duration = now - PROGRAM_START_TIME;
+    return duration_cast<milliseconds>(duration).count();
+}
+
+uint64_t get_time_diff(chrono::high_resolution_clock::time_point& p) {
+    const auto now = chrono::high_resolution_clock::now();
+    const auto duration = now - p;
+    p = now;
     return duration_cast<nanoseconds>(duration).count();
 }
