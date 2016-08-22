@@ -1,8 +1,9 @@
 #pragma once
 
 #include <stdint.h>
-#include <iostream>
+#include <sstream>
 #include "sat.h"
+
 
 /**
  *
@@ -20,12 +21,17 @@ public:
     /**
      *
      */
-    ofstream fileout;
+    stringstream fileout;
+
+    /**
+     *
+     */
+    bool active = false;
 
     /**
      * current iteration
      */
-    uint64_t num_of_iteration;
+    uint64_t num_of_iteration = 0;
 
     /**
      * Number of outputs found so far.
@@ -81,50 +87,49 @@ public:
     /**
      *
      */
-    Statistic()
-        : num_of_iteration(0) {}
+    Statistic() {}
 
 
     /**
      * Write headers to the statistic file
      */
     void header() {
-        if (fileout.is_open()) {
-            fileout
-                << "number_of_iteration"
-                    "\tcpu_time_consumed"
-                    "\tshannon_lower"
-                    "\tshannon_guess"
-                    "\tshannon_upper"
-                    "\tmin_lower"
-                    "\tmin_guess"
-                    "\tmin_upper"
-                    "\tnumber_of_inputs"
-                    "\tnumber_of_outputs"
-                    "\trestarts"
-                    "\tconflict"
-                    "\tdecisions"
-                    "\tdecisions_rnd"
-                    "\tpropagations"
-                    "\tconflict_literals"
-                    "\tsat_calls"
-                    "\tsat_time"
-                << endl;
-        }
+        fileout
+            << "number_of_iteration"
+            "\tcpu_time_consumed"
+            "\tshannon_lower"
+            "\tshannon_guess"
+            "\tshannon_upper"
+            "\tmin_lower"
+            "\tmin_guess"
+            "\tmin_upper"
+            "\tnumber_of_inputs"
+            "\tnumber_of_outputs"
+            "\trestarts"
+            "\tconflict"
+            "\tdecisions"
+            "\tdecisions_rnd"
+            "\tpropagations"
+            "\tconflict_literals"
+            "\tsat_calls"
+            "\tsat_time"
+            << endl;
     }
 
-    void open(const string& filename) {
-        fileout.open(filename);
-        header();
-    }
+    // void open(const string& filename) {
+    //     fileout.open(filename);
+    //     header();
+    // }
 
-    void close() {
-        if (fileout.is_open()) {
-            fileout.close();
-        }
-    }
+    // void close() {
+    //     if (fileout.is_open()) {
+    //         fileout.close();
+    //     }
+    // }
 
     void update(const Buckets& buckets) {
+        if(!active) return;
+
         shannon_entropy.guess       = ::shannon_entropy(number_of_inputs, buckets);
 
         shannon_entropy.lower_bound = shannon_entropy_lower_bound
@@ -139,19 +144,19 @@ public:
         min_entropy.guess       = ::min_entropy(SI, number_of_outputs);
         min_entropy.lower_bound = 0;
         min_entropy.upper_bound = 0;
-
-
-
-
     }
 
     void update(const MinisatInterface* solver) {
+        if(!active) return;
+
         sat_calls = solver->sat_calls;
         sat_time  = solver->last_sat_time;
         update(solver->solver);
     }
 
     void update(const Solver& solver) {
+        if(!active) return;
+
         restarts          = solver.starts;
         conflict          = solver.conflicts;
         decisions         = solver.decisions;
@@ -161,27 +166,10 @@ public:
     }
 
     /**
-     *
-     */
-    void writeconsole() {
-        std::cout << num_of_iteration
-             << "\t" << cpu_time_consumed
-             << "\t" << shannon_entropy.lower_bound
-             << "\t" << shannon_entropy.guess
-             << "\t" << shannon_entropy.upper_bound
-             << "\t" << min_entropy.lower_bound
-             << "\t" << min_entropy.guess
-             << "\t" << min_entropy.upper_bound
-             << "\t" << number_of_inputs
-             << "\t" << number_of_outputs
-             << endl;
-    }
-
-    /**
      * Write the current statistic values into `fstatistics`
      */
     void write() {
-        if (fileout.is_open()) {
+        if (active) {
             fileout  << num_of_iteration
                      << "\t" << cpu_time_consumed
                      << "\t" << shannon_entropy.lower_bound
@@ -204,5 +192,4 @@ public:
             num_of_iteration++;
         }
     }
-
 };

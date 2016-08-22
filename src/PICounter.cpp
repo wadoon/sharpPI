@@ -56,15 +56,6 @@ vector<Lit> PICounter::project_model(const vector<Var> &variables) {
     return ret;
 }
 
-void PICounter::write_output() {
-    //auto value = interpret(_output_literals);
-    //model_stream << "\n" << value << " ";
-}
-
-void PICounter::write_input() {
-    //auto value = interpret(_input_literals);
-    //model_stream << value << " ";
-}
 
 Buckets PICounter::count_bucket_all() {
     Buckets found_preimage_sizes;
@@ -87,7 +78,6 @@ bool PICounter::count_one_bucket(Buckets& previous) {
     vector<Lit> assum;
 
     if(solver->solve(assum)) {
-        //write_output();
         if (verbose) {
             std::cout << "Output: " << std::endl;
             for (auto &var : _output_variables) {
@@ -124,7 +114,6 @@ bool PICounter::count_one_bucket(Buckets& previous) {
                 }
             }
 
-            //write_input();
             bucket.size++; // we found the first model, already
             prohibit_project(_input_literals);
             stat_point(previous);
@@ -150,7 +139,6 @@ bool PICounter::count_one_bucket_sharp(Buckets& previous,
     DSharpSAT sharpSAT;
 
     if (solver->solve(assum)) {
-        write_output();
         if (verbose) {
             std::cout << "Output: " << std::endl;
             for (auto &var : _output_variables) {
@@ -288,7 +276,6 @@ CounterMatrix PICounter::count_rand() {
     CounterMatrix cm(_input_literals.size(), _output_literals.size());
 
     while (solver->solve(assum)) {
-        write_output();
         if (verbose) {
             std::cout << "Output: " << std::endl;
             for (auto &var : _output_variables) {
@@ -319,8 +306,6 @@ CounterMatrix PICounter::count_rand() {
                               << std::endl;
                 }
             }
-
-            write_input();
 
             cm.count(interpret(_input_literals), interpret(_output_literals));
 

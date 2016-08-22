@@ -27,13 +27,13 @@ uint64_t space_size(const uint64_t num_of_variables);
  *
  *
  */
-long double shannon_entropy(uint64_t SI, const vector<uint64_t> &C);
+long double shannon_entropy(uint64_t, const vector<uint64_t>&);
 
 /**
  *
  *
  */
-long double shannon_entropy(uint64_t SI, const Buckets&);
+long double shannon_entropy(uint64_t, const Buckets&);
 
 
 /**

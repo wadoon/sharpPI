@@ -42,7 +42,14 @@ public:
     { last = chrono::high_resolution_clock::now(); }
 
     ~PICounter() {
-        _stat.close();
+            if(_stat.active) {
+                console() << "write statistic file: " << statistic_filename << endl;
+                ofstream s(statistic_filename);
+                s << _stat.fileout.str();
+            } else {
+                console() << "statistic deactivated" << endl;
+
+            }
     }
 
     void prohibit_project(const vector<Var> &solver);
@@ -166,7 +173,9 @@ public:
 
 
     void enable_stat(const string& filename) {
-        _stat.open(filename);
+        _stat.active = true;
+        statistic_filename = filename;
+        _stat.header();
     }
 
     Statistic& stat() { return _stat; }
@@ -187,13 +196,9 @@ private:
     std::vector<Var> _seed_literals;
 
     bool verbose;
+    std::string statistic_filename;
 
 
     chrono::high_resolution_clock::time_point last;
-
-    void write_input();
-
-    void write_output();
-
     void stat_point(const Buckets& result);
 };
