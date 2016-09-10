@@ -10,9 +10,10 @@
 #include <chrono>
 #include "cbmcparser.h"
 #include "entropy.h"
-
+#include <assert.h>
 #include "core/Solver.h"
 #include "utils/System.h"
+#include <limits>
 
 
 //#include "pstreams-0.8.1/pstream.h"
@@ -180,6 +181,26 @@ public:
 
     Statistic& stat() { return _stat; }
 
+    void set_tolerance(double t) { tolerance = t; }
+
+    bool tolerance_met(const Buckets& buckets) {
+        if(tolerance == -INFINITY) //disabled
+            return false;
+        auto all_preimages = space_size(_input_literals.size());
+        auto found_preimages = sum_buckets(buckets);
+        auto l = shannon_entropy_lower_bound(buckets, all_preimages, found_preimages);
+        auto u = shannon_entropy_upper_bound(buckets, all_preimages, found_preimages);
+        assert( l - u > 0 );
+
+        if(verbose){
+            console() << "Upper bound:   " << u << endl;
+            console() << "Lower bound:   " << l << endl;
+            console() << "Tolerance met: " << (l - u <= tolerance) << endl;
+        }
+
+        return  l - u <= tolerance;
+    }
+
 private:
     Statistic _stat;
 
@@ -198,6 +219,7 @@ private:
     bool verbose;
     std::string statistic_filename;
 
+    double tolerance = -INFINITY;
 
     chrono::high_resolution_clock::time_point last;
     void stat_point(const Buckets& result);

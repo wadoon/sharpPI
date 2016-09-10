@@ -5,6 +5,7 @@
 #include "CommandLineArguments.h"
 #include <unistd.h>
 #include <iostream>
+#include <limits>
 #include "util.h"
 
 #include <boost/program_options/errors.hpp>
@@ -27,7 +28,7 @@ std::istream& operator>>(std::istream& in, OperationMode& mode)
             mode = OperationMode::DBUCKET;
         }
         else
-            if(token == "bucket") {
+            if(token == "bucketa") {
                 mode = OperationMode::DBUCKETALL;
             }
             else
@@ -40,7 +41,7 @@ std::istream& operator>>(std::istream& in, OperationMode& mode)
                     }
                     else {
                         if(token == "dsharp") {
-                            mode = OperationMode::NRAND;
+                            mode = OperationMode::DSHARP;
                         }
                         else {
                             throw boost::program_options::validation_error
@@ -63,11 +64,12 @@ CommandLineArguments::CommandLineArguments()
         ("help,h", "produce help message")
         ("verbose,v", "verbose mode")
         //		  ("stat", "enable statistics")
-        ("limit,l", po::value<uint64_t>(&_limit)->value_name("INT")->default_value( (uint64_t) -1 ), "limit rounds")
+        //("limit,l", po::value<uint64_t>(&_limit)->value_name("INT")->default_value( (uint64_t) -1 ), "limit rounds")
         ("mode,m", po::value<OperationMode>(&_mode)->value_name("MODE_ID"), "mode")
-        (",n", po::value<uint>(&_max_models)->value_name("INT")->default_value(-1), "maximum count on models that should be found")
+        //(",n", po::value<uint>(&_max_models)->value_name("INT")->default_value(-1), "maximum count on models that should be found")
         ("input,i", po::value<StringList>(&_input_variables)->value_name("VARIABLE"), "input")
         ("output,o", po::value<StringList>(&_output_variables)->value_name("VARIABLE"), "output")
+        ("tolerance,t", po::value<double>(&_tolerance)->value_name("DOUBLE")->default_value(-INFINITY), "tolerance criterium")
         ("statistic", po::value<string>(&_stat_filename)->value_name("FILE")->default_value(""), "statistics filename, default: no statistic is written")
         //positional
         ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
@@ -114,16 +116,11 @@ void CommandLineArguments::printUsage() {
     std::cout << "Usage: " << program_invocation_short_name << " {options} input-file" << endl;
     std::cout << general
               << "\nOperation Modes:\n"
-              << "\t" << static_cast<int>(OperationMode::DUNGUIDED)
-              << ": Unguided Determinstic\n"
-              << "\t" << static_cast<int>(OperationMode::DBUCKET)
-              << ": Bucket-Wise Deterministic\n"
-              << "\t" << static_cast<int>(OperationMode::DSYNC)
-              << ": Sync Deterministic\n"
-              << "\t" << static_cast<int>(OperationMode::NRAND)
-              << ": Non-Deterministic\n"
-              << "\t" << static_cast<int>(OperationMode::DSHARP)
-              << ": #SAT (dsharp) Determinstic\n"
+              << "\t unguided : Unguided Determinstic\n"
+              << "\t bucket   : Bucket-Wise Deterministic\n"
+              << "\t sync     : Sync Deterministic\n"
+              << "\t rand     : Non-Deterministic\n"
+              << "\t dsharp   : #SAT (dsharp) Determinstic\n"
               << "\n\nVersion: " << SHARP_PI_VERSION << " / " << SHARP_PI_DATE << endl << endl
               << "Copyright: " << endl
               << COPYRIGHT << endl;

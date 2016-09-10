@@ -43,11 +43,14 @@ public:
     std::string &input_filename()  { return _input_filename; };
 
     const std::string &statistic_filename()  const { return _stat_filename; }
+
     const bool has_statistic() const { return statistic_filename().size() > 0;}
 
-    uint64_t limit() const { return _limit; };
-    uint max_models() const { return _max_models; };
+    uint64_t limit() const { return _limit; }
+    uint max_models() const { return _max_models; }
     void printUsage();
+
+    double tolerance() {return _tolerance;}
 
 private:
     po::options_description general, ndet;
@@ -57,7 +60,7 @@ private:
     int inputfile = 0;
 
     //---
-
+    double _tolerance;
     std::vector<std::string> _input_variables, _output_variables, _seed_variables;
     OperationMode _mode;
     std::string _input_filename;

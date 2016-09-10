@@ -39,7 +39,7 @@ long double shannon_entropy(uint64_t, const Buckets&);
 /**
  *
  */
-long double min_entropy(long int SI, long n);
+long double min_entropy(uint64_t SI, uint64_t n);
 
 
 /**
@@ -54,7 +54,7 @@ template uint64_t sum_buckets<uint64_t>(const vector<uint64_t> &buckets); // exp
 
 template<typename T>
 T sum_buckets(const vector<_Bucket<T>> &buckets) {
-    T sum;
+    T sum = 0;
     for(auto& b : buckets) {
         sum+=b.size;
     }
@@ -62,12 +62,33 @@ T sum_buckets(const vector<_Bucket<T>> &buckets) {
 
 }
 
+template<typename T>
+uint64_t sum_outputs(const vector<_Bucket<T>> &buckets) {
+    uint64_t sum = 0;
+    for(auto& b : buckets) {
+        if(b.size!=0) sum++;
+    }
+    return sum;
+}
 
 
+long double uncertainty_span(const Buckets& buckets,
+                             uint64_t allpreimages,
+                             uint64_t countedpreimages,
+                             bool verbose = false);
+
+/**
+ *
+ *
+ */
 long double shannon_entropy_upper_bound(const Buckets& buckets,
                                         uint64_t allpreimages,
                                         uint64_t countedpreimages);
 
+/**
+ *
+ *
+ */
 long double shannon_entropy_lower_bound(const Buckets& buckets,
                                         uint64_t allpreimages,
                                         uint64_t countedpreimages);
@@ -111,14 +132,14 @@ public:
     /**
      *
      */
-    long double shannon_entropy();
+    long double shannon_entropy() const;
 
     unsigned long input_count() const { return this->found_pairs;}
 
-    long double min_entropy();
+    long double min_entropy() const;
 
 protected:
-    long double shannon_entropy(const VectorXd &py, const MatrixXd &p_xy);
+    long double shannon_entropy(const VectorXd &py, const MatrixXd &p_xy) const;
 
     /**
      * Count of found pairs of input - output relations

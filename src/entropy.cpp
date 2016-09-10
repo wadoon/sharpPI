@@ -6,7 +6,10 @@
 #include <queue>
 
 uint64_t space_size(const uint64_t num_of_variables) {
-    return ((uint) 1 ) << num_of_variables;
+    if(num_of_variables == 0)
+        return 0;
+
+    return ((uint64_t) 1 ) << num_of_variables;
 }
 
 long double shannon_entropy(uint64_t SI, const vector<uint64_t> &C) {
@@ -18,8 +21,23 @@ long double shannon_entropy(uint64_t SI, const vector<uint64_t> &C) {
 }
 
 
-long double min_entropy(long int SI, long n) {
-    return log2(SI) - log2(n);
+long double min_entropy(uint64_t SI, uint64_t n) {
+    return log2(SI / n);
+}
+
+long double uncertainty_span(const Buckets& buckets,
+                             uint64_t allpreimages,
+                             uint64_t countedpreimages,
+                             bool verbose) {
+    auto upper = shannon_entropy_upper_bound(buckets, allpreimages, countedpreimages);
+    auto lower = shannon_entropy_lower_bound(buckets, allpreimages, countedpreimages);
+
+    if(verbose) {
+        console() << "Lower Bound: " << lower << endl;
+        console() << "Upper Bound: " << upper << endl;
+    }
+
+    return upper - lower;
 }
 
 long double shannon_entropy(uint64_t SI, const Buckets& buckets) {
@@ -91,7 +109,7 @@ long double shannon_entropy_lower_bound(const Buckets& buckets,
 
 
 
-long double CounterMatrix::shannon_entropy(const VectorXd &py, const MatrixXd &p_xy) {
+long double CounterMatrix::shannon_entropy(const VectorXd &py, const MatrixXd &p_xy) const {
     long double shentropy = 0;
     for (int y = 0; y < py.rows(); ++y) {
 
@@ -111,7 +129,7 @@ long double CounterMatrix::shannon_entropy(const VectorXd &py, const MatrixXd &p
     return shentropy;
 }
 
-long double CounterMatrix::shannon_entropy() {
+long double CounterMatrix::shannon_entropy() const {
     auto joint = joint_probability();
     auto py = joint.colwise().sum();
 
@@ -141,7 +159,7 @@ long double CounterMatrix::shannon_entropy() {
     return shannon_entropy(py, p_xy);
 }
 
-long double CounterMatrix::min_entropy() {
+long double CounterMatrix::min_entropy() const {
 
     return 0;
 }

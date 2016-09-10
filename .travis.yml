@@ -11,4 +11,4 @@ install:
   - ( mkdir build && cd build && cmake ../src -DCMAKE_BUILD_TYPE=Release && make -j 4 )
 script:
   - build/sharpPI -h 
-  - time build/sharpPI  -i @I -o global_consumption tests/all_houses_12_A.cnf
+  - (cd tests && ./test_biondi.sh)

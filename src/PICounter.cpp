@@ -58,7 +58,7 @@ vector<Lit> PICounter::project_model(const vector<Var> &variables) {
 
 
 Buckets PICounter::count_bucket_all() {
-    Buckets found_preimage_sizes;
+    Buckets found_preimage_sizes(space_size(_output_literals.size()), {0, false});
     bool b = true;
     while (b) {
         b = count_one_bucket(found_preimage_sizes);
@@ -94,8 +94,8 @@ bool PICounter::count_one_bucket(Buckets& previous) {
         // we fixate the found output
         assum = project_model(_output_literals);
 
-        previous.push_back({1,false});
-        Bucket& bucket = previous.back();
+
+        Bucket& bucket = previous.at(interpret(_output_literals));
         bool a;
 
         do {
@@ -118,11 +118,19 @@ bool PICounter::count_one_bucket(Buckets& previous) {
             prohibit_project(_input_literals);
             stat_point(previous);
 
+            if(_user_want_terminate) {
+                console() << "User termination. " << endl;
+                break;
+            }
+
             //exclude the found input pattern
             a = solver->solve(assum);
         } while (a);
 
-
+        if(tolerance_met(previous)) {
+            console() << "Tolerance condition met" << endl;
+            return false;
+        }
 
         //optional exclude output
         prohibit_project(_output_literals);
@@ -230,13 +238,23 @@ bool PICounter::count_sync(const LabelList &labels, Buckets& buckets) {
             prohibit_project(_input_literals);
             buckets[i].size += 1;
 
-            one_open=true;
+            one_open = true;
         }else{
             buckets[i].closed = true;
         }
 
         //disable this  output
         assumption[i] = ~ assumption[i];
+
+
+        if(_user_want_terminate) {
+            return false;
+        }
+
+        if(tolerance_met(buckets)) {
+            console() << "Tolerance condition met" << endl;
+            return false;
+        }
     }
     return one_open;
 }
@@ -244,7 +262,7 @@ bool PICounter::count_sync(const LabelList &labels, Buckets& buckets) {
 bool PICounter::count_unguided(Buckets& buckets) {
     vector<Lit> assum;
     stat_point(buckets);
-    while(true){//for (uint64_t i = 0; i < limit; i++) {
+    while(true){
         if (!count_unstructured_one(buckets))
             return false;
     }
@@ -257,8 +275,19 @@ bool PICounter::count_unstructured_one(Buckets& buckets) {
         uint output = (uint) interpret(_output_literals);
         prohibit_project(_input_literals);
         buckets[output].size++;
+
+        if(_user_want_terminate) {
+            return false;
+        }
+
+        if(tolerance_met(buckets)) {
+            console() << "Tolerance condition met" << endl;
+            return false;
+        }
+
         return true;
     }
+
     return false;
 }
 
@@ -273,60 +302,60 @@ CounterMatrix PICounter::count_rand() {
     for(auto& v: _seed_literals) {
         seed_and_input.push_back(v);
 
-    CounterMatrix cm(_input_literals.size(), _output_literals.size());
+        CounterMatrix cm(_input_literals.size(), _output_literals.size());
 
-    while (solver->solve(assum)) {
-        if (verbose) {
-            std::cout << "Output: " << std::endl;
-            for (auto &var : _output_variables) {
-                std::cout << "\t" << var.variable_name << "[" << var.time
-                          << "] = " << interpret(var.positions) << std::endl;
+        while (solver->solve(assum)) {
+            if (verbose) {
+                std::cout << "Output: " << std::endl;
+                for (auto &var : _output_variables) {
+                    std::cout << "\t" << var.variable_name << "[" << var.time
+                              << "] = " << interpret(var.positions) << std::endl;
+                }
             }
+
+            // we fixate the found output
+            assum = project_model(_output_literals);
+
+            uint64_t pi = 0;
+
+            bool a;
+            do {
+
+                if (verbose) {
+                    std::cout << "\t\tInput: " << std::endl;
+                    for (auto &var : _input_variables) {
+                        std::cout << "\t\t\t" << var.variable_name << "["
+                                  << var.time << "] = " << interpret(var.positions)
+                                  << std::endl;
+                    }
+
+                    for (auto &var : _seed_variables) {
+                        std::cout << "\t\t\t" << var.variable_name << "["
+                                  << var.time << "] = " << interpret(var.positions)
+                                  << std::endl;
+                    }
+                }
+
+                cm.count(interpret(_input_literals), interpret(_output_literals));
+
+                pi++; // we found the first model, already
+
+                prohibit_project(seed_and_input);
+
+                //exclude the found input pattern
+                a = solver->solve(assum);
+
+            } while (a);
+
+            //optional exclude output
+            prohibit_project(_output_literals);
+
+            //release assumption
+            assum.clear();
         }
 
-        // we fixate the found output
-        assum = project_model(_output_literals);
-
-        uint64_t pi = 0;
-
-        bool a;
-        do {
-
-            if (verbose) {
-                std::cout << "\t\tInput: " << std::endl;
-                for (auto &var : _input_variables) {
-                    std::cout << "\t\t\t" << var.variable_name << "["
-                              << var.time << "] = " << interpret(var.positions)
-                              << std::endl;
-                }
-
-                for (auto &var : _seed_variables) {
-                    std::cout << "\t\t\t" << var.variable_name << "["
-                              << var.time << "] = " << interpret(var.positions)
-                              << std::endl;
-                }
-            }
-
-            cm.count(interpret(_input_literals), interpret(_output_literals));
-
-            pi++; // we found the first model, already
-
-            prohibit_project(seed_and_input);
-
-            //exclude the found input pattern
-            a = solver->solve(assum);
-
-        } while (a);
-
-        //optional exclude output
-        prohibit_project(_output_literals);
-
-        //release assumption
-        assum.clear();
+        return cm;
     }
-
-    return cm;
-}
 }
 
 void PICounter::activate(const vector<vector<int>> &clauses, int max_var) {

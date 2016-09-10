@@ -1,8 +1,6 @@
 #include <iostream>
 
-using namespace std;
-
-
+#include "version.h"
 #include "CommandLineArguments.h"
 #include "cbmcparser.h"
 #include "util.h"
@@ -11,14 +9,12 @@ using namespace std;
 
 #include "stat.h"
 
+using namespace std;
 
 /**
  * true if the user want to terminate this program.
  */
 bool _user_want_terminate = false;
-
-
-
 
 
 //region signal handler
@@ -37,23 +33,30 @@ void install_handler() {
 }
 //endregion
 
-/*class CountingMode {
-    CountingMode(CommandLineArguments &cli, PICounter &counter)
-        : counter(counter), cli(cli) {}
 
-    int operator()() {
-        return 0;
-    }
-    };*/
+void write_final_result(const Buckets& buckets) {
+    auto input_space_size = sum_buckets(buckets);
+    auto output_space_size = sum_outputs(buckets);
+    auto se = shannon_entropy(input_space_size, buckets);
+    auto me = min_entropy(input_space_size, output_space_size);
+    auto leakage = log2(input_space_size) - se;
 
-void write_final_result(uint64_t input_space_size,
-                        long double shannon_entropy,
-                        long double min_entropy) {
-    console()
-        << "Input Space Size"       <<  input_space_size << endl
-        << "Shannon Entropy H(h|l)" <<  shannon_entropy << endl
-        << "Min Entropy"            <<  min_entropy << endl
-        ;//        << "Leakage"                <<  leakage << endl;
+    console() << "Input Space Size       " <<  input_space_size << endl;
+    console() << "Shannon Entropy H(h|l) " <<  se << endl;
+    console() << "Min Entropy            " <<  me << endl;
+    console() << "Leakage                " <<  leakage << endl;
+}
+
+void write_final_result(const CounterMatrix& m) {
+    unsigned long SI = m.input_count();
+    long double se = m.shannon_entropy();
+    long double me = m.min_entropy();
+    long double leakage = SI - se;
+
+    console() << "Input Space Size"       <<  SI << endl;
+    console() << "Shannon Entropy H(h|l)" <<  se << endl;
+    console() << "Min Entropy"            <<  me << endl;
+    console() << "Leakage"                <<  leakage << endl;
 }
 
 /**
@@ -61,19 +64,10 @@ void write_final_result(uint64_t input_space_size,
  */
 int count_deterministic(CommandLineArguments &cli, PICounter &counter) {
     console() << "Operation Mode: Deterministic NAIVE" << endl;
-
     auto ret = counter.count_bucket_all();
-
     if (cli.verbose())
         console() << "Result: " << ret << "\n";
-
-    unsigned long int SI = sum_buckets(ret);
-
-    auto shannon_e = shannon_entropy(SI, ret);
-    auto min_e = min_entropy(SI, ret.size());
-    auto leakage = log2(SI) - shannon_entropy(SI, ret);
-
-    write_final_result(SI, shannon_e, min_e);
+    write_final_result(ret);
     return 0;
 }
 
@@ -82,21 +76,13 @@ int count_deterministic(CommandLineArguments &cli, PICounter &counter) {
  */
 int ndet(CommandLineArguments &arguments, PICounter &counter) {
     console() << "Operation Mode: non-deterministic" << endl;
-
     CounterMatrix m = counter.count_rand();
-
-    unsigned long SI = m.input_count();
-    long double shannon_e = m.shannon_entropy();
-    long double min_e = m.min_entropy();
-    long double leakage = SI - shannon_e;
-
-    write_final_result(SI, shannon_e, min_e);
+    write_final_result(m);
     return 0;
 }
 
 int det_unguided(const CommandLineArguments &cli, PICounter &counter) {
     console() << "Operation Mode: Unguided (deterministic)" << endl;
-
     const auto SO = space_size(counter.get_output_literals().size());
     const auto SI = space_size(counter.get_input_literals().size());
 
@@ -106,40 +92,33 @@ int det_unguided(const CommandLineArguments &cli, PICounter &counter) {
 
     Buckets ret(SO, {0,false});
 
-    //cout << "Count Limit: " << cli.limit() << endl;
-
     counter.stat().SO = SO;
     counter.stat().SI = SI;
 
-    for (uint i = 0; /*  i < cli.limit() */ true; i++) {
-
+    bool b;
+    for (uint i = 0; true; i++) {
         if (_user_want_terminate) // user requested to terminate
             break;
 
-        double start = cpuTime();
-        bool       b = counter.count_unguided(ret);
-	double   end = cpuTime();
+        b = counter.count_unguided(ret);
 
-	if (cli.verbose()) {
-		if (b) {
-                    console() << "There are sill more input/output relations" << endl;
-		} else {
-                    console() << "Search was exhaustive" << endl;
-		}
-
-	}
-
-	if(cli.verbose() || !b) {
-            auto shannon_e = shannon_entropy(SI, ret);
-            auto min_e = min_entropy(SI, ret.size());
-            auto leakage = log2(SI) - shannon_entropy(SI, ret);
-            write_final_result(SI, shannon_e, min_e);
+	if(cli.verbose()) {
+            console() << "Round: " << i << ":" << endl;
+            write_final_result(ret);
 	}
 
 	if(!b) {
             break;
         }
     }
+
+    if (b) {
+        console() << "There are sill more input/output relations" << endl;
+    } else {
+        console() << "Search was exhaustive" << endl;
+    }
+
+    write_final_result(ret);
 
     return 0;
 }
@@ -152,40 +131,36 @@ int det_bucket(const CommandLineArguments &cli, PICounter &counter) {
 	counter.stat().SO = SO;
 	counter.stat().SI = SI;
 
-	Buckets ret;
+        Buckets ret(SO, {0, false});
+
 
 	bool b = true;
 
-	for (int k = 1; true /*  k <= cli.limit() && b */; k++) {
-            b = counter.count_one_bucket(ret);
-
-            // if (cli.verbose())
-            //    cout << k << "# Result: " << ret << "\n";
-
-
-            if(cli.verbose()){
-                auto shannon_e = shannon_entropy(SI, ret);
-                auto min_e = min_entropy(SI, ret.size());
-                auto leakage = log2(SI) - shannon_entropy(SI, ret);
-
-                cout << k << "# Result: " <<
-                    "Shannon Entropy H(h|l)" << shannon_e
-                     << endl;
-
-                //cout << TB.create_table(results) << endl;
+	for (int k = 1; true; k++) {
+            if (_user_want_terminate) {
+                console() << "Terminate on user request" << endl;
+                break;
             }
 
+            b = counter.count_one_bucket(ret);
 
-            if (_user_want_terminate) {
-                cout << "Terminate on user request" << endl;
-                break;
+            if(cli.verbose()) {
+                console() << "Round: " << k << ":" << endl;
+                write_final_result(ret);
             }
 
             if(!b) {
-                cout << "Search was exhaustive!" << endl;
                 break;
             }
 	}
+
+        if (b) {
+            console() << "There are sill more input/output relations" << endl;
+        } else {
+            console() << "Search was exhaustive" << endl;
+        }
+
+        write_final_result(ret);
 
 	return 0;
 }
@@ -322,13 +297,18 @@ int run(CommandLineArguments &cli) {
 
     counter.activate(parser.clauses(), parser.max_variable());
 
+    counter.set_verbose(cli.verbose());
+    counter.set_tolerance(cli.tolerance());
+
+
     if (cli.verbose()) {
         console() << "Number of Variables: " << parser.max_variable() << std::endl;
-        console() << "Number of Clauses: " << parser.clauses().size() << std::endl;
-        console() << "Input Variables: " << parser.ivars() << std::endl;
-        console() << "Output Variables: " << parser.ovars() << std::endl;
-        console() << "Seed Variables: " << parser.svars() << std::endl;
-        console() << "Output limit: " << cli.max_models() << std::endl;
+        console() << "Number of Clauses: "   << parser.clauses().size() << std::endl;
+        console() << "Input Variables: "     << parser.ivars() << std::endl;
+        console() << "Output Variables: "    << parser.ovars() << std::endl;
+        console() << "Seed Variables: "      << parser.svars() << std::endl;
+        console() << "Output limit: "        << cli.max_models() << std::endl;
+        console() << "Tolerance: "           << cli.tolerance() << std::endl;
     }
 
     if (cli.has_statistic()) {
@@ -336,7 +316,6 @@ int run(CommandLineArguments &cli) {
         counter.enable_stat(cli.statistic_filename());
     }
 
-    counter.set_verbose(cli.verbose());
 
     switch (cli.mode()) {
     case OperationMode::DBUCKETALL:
@@ -367,15 +346,11 @@ int run(CommandLineArguments &cli) {
 }
 
 
-#include "version.h"
-
 /**
  *
  */
 int main(int argc, char *argv[]) {
-    cout
-        << "sharpPI -- " << SHARP_PI_VERSION << " from " << SHARP_PI_DATE << endl
-        << "           " << GIT_VERSION << "@" << REF_SPEC << endl;
+    cout << "sharpPI -- " << SHARP_PI_VERSION << " from " << SHARP_PI_DATE << endl;
 
     CommandLineArguments commandLineArguments;
     commandLineArguments.initialize(argc, argv);
@@ -384,7 +359,6 @@ int main(int argc, char *argv[]) {
         commandLineArguments.printUsage();
         return 0;
     }
-
 
     if (commandLineArguments.mode() == OperationMode::SHARPSAT) {
         return count_sat(commandLineArguments);
