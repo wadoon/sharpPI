@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<head>
+  <title>{% if page_title %}{{ page_title }} - {% endif %}{{ site_name }}</title>
+  {% if favicon %}
+    <link rel="shortcut icon" href="{{ favicon }}">
+  {% else %}
+    <link rel="shortcut icon" href="{{ base_url }}/img/favicon.ico">
+  {% endif %}
+
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+  <link rel="stylesheet" href="{{ base_url }}/css/theme.css">
+
+  {% for path in extra_css %}
+    <link href="{{ path }}" rel="stylesheet">
+  {% endfor %}
+
+  {% for path in extra_javascript %}
+    <script src="{{ path }}"></script>
+  {% endfor %}
+
+  {% block extrahead %}
+  {% endblock %}
+</head>
+
+<body>
+  <!--
+  <ul>
+  {% for toc_item in toc %}
+      <li><a href="{{ toc_item.url }}">{{ toc_item.title }}</a></li>
+      {% for toc_item in toc_item.children %}
+          <li><a href="{{ toc_item.url }}">{{ toc_item.title }}</a></li>
+      {% endfor %}
+  {% endfor %}
+  </ul>
+-->
+  <hr/>
+
+  {% block content %}
+    {{ content }}
+  {% endblock %}
+
+  <hr/>
+
+  <footer>
+    {{build_date_utc}} &mdash; <a href="http://formal.iti.kit.edu/~weigl">Alexander Weigl</a>
+
+  </footer>
+  <!--
+  MkDocs version      : {{ mkdocs_version }}
+  Docs Build Date UTC : {{ build_date_utc }}
+  -->
+</body>
+</html>

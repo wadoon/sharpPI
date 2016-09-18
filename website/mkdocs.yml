@@ -1,0 +1,9 @@
+site_name: sharpPI
+theme_dir: 'vanilla'
+markdown_extensions:
+  - smarty
+  - sane_lists
+  - tables
+  - footnotes
+  - def_list
+  - admonition
