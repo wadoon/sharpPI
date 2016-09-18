@@ -8,6 +8,7 @@
 #include <limits>
 #include "util.h"
 
+#include "sharpsat.h"
 #include <boost/program_options/errors.hpp>
 
 
@@ -52,13 +53,38 @@ std::istream& operator>>(std::istream& in, OperationMode& mode)
     return in;
 }
 
+std::istream& operator>>(std::istream& in, SharpSatTool& tool) {
+    std::string token;
+    in >> token;
+
+    if(token == "dsharp") {
+        tool = SharpSatTool::DSHARP;
+    }
+
+    if(token == "clasp") {
+        tool = SharpSatTool::CLASP;
+    }
+
+    if(token == "sharpsat") {
+        tool = SharpSatTool::SHARPSAT;
+    }
+
+    if(token == "approxmc") {
+        tool = SharpSatTool::APPROXMC;
+    }
+
+    return in;
+}
+
 
 
 CommandLineArguments::CommandLineArguments()
     : _verbose(false), _help(false), //_output_model_filename("model.csv"),
           //_statistics(false),
       _mode(OperationMode::DBUCKET),
+      _ssat_tool(SharpSatTool::NONE),
       general("General"),
+      ssat("#SAT-p"),
       ndet("Non-determinism") {
     general.add_options()
         ("help,h", "produce help message")
@@ -74,11 +100,19 @@ CommandLineArguments::CommandLineArguments()
         //positional
         ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
 
+
+
+    ssat.add_options()
+        ("ssat-tool", po::value<SharpSatTool>(&_ssat_tool)->value_name("NAME"), "name of the  #SAT-p tool")
+        ("ssat-command", po::value<string>(&_ssat_command)->value_name("command"), "command to call for #SAT-p.")
+        ("ssat-indicator", po::value<string>(&_ssat_indicator)->value_name("STRING"), "prefix.");
+
     ndet.add_options()
-        ("s,seeds", po::value<StringList>(&_seed_variables)->value_name("variable"), "seed")
+        ("seeds,s", po::value<StringList>(&_seed_variables)->value_name("variable"), "seed")
         ("density", "density values for each output");
 
     general.add(ndet);
+    general.add(ssat);
 
     p.add("filename", 1);
 }
@@ -101,6 +135,29 @@ void CommandLineArguments::initialize(int argc, char *argv[]) {
             printUsage();
             exit(0);
         }
+
+
+        if(vm.count("ssat-tool")) {
+            switch(_ssat_tool) {
+            case SharpSatTool::APPROXMC:
+                _ssat_command = COMMAND_APPROXMC;
+                _ssat_indicator = INDICATOR_APPROXMC;
+                break;
+            case SharpSatTool::DSHARP:
+                _ssat_command = COMMAND_DHSARP;
+                _ssat_indicator = INDICATOR_DSHARP;
+                break;
+            case SharpSatTool::SHARPSAT:
+                _ssat_command = COMMAND_SHARPSAT;
+                _ssat_indicator = INDICATOR_SHARPSAT;
+                break;
+            case SharpSatTool::CLASP:
+                _ssat_command = COMMAND_CLASP;
+                _ssat_indicator = INDICATOR_CLASP;
+                break;
+            }
+        }
+
     }
     catch (po::required_option &e) {
         std::cerr << "ERROR: " << e.what() << std::endl << std::endl;

@@ -88,9 +88,6 @@ bool PICounter::count_one_bucket(Buckets& previous) {
                          << std::endl;
             }
         }
-
-        int i = 15234234;
-
         // we fixate the found output
         assum = project_model(_output_literals);
 
@@ -140,11 +137,10 @@ bool PICounter::count_one_bucket(Buckets& previous) {
 }
 
 
-bool PICounter::count_one_bucket_sharp(Buckets& previous,
+bool PICounter::count_one_bucket_sharp(Buckets& buckets,
                                        const string &filename) {
     vector<Lit> assum;
-
-    DSharpSAT sharpSAT;
+    SharpSAT sharpSAT;
 
     if (solver->solve(assum)) {
         if (verbose) {
@@ -157,17 +153,27 @@ bool PICounter::count_one_bucket_sharp(Buckets& previous,
 
         // we fixate the found output
         assum = project_model(_output_literals);
-
         uint64_t pi = sharpSAT(/*solver*/filename, assum, _input_literals);
+        buckets.at(interpret(_output_literals)).size = pi;
 
-        //        Bucket b = {pi, true};
-
-        previous.push_back({pi,true});
-
-        //optional exclude output
+        // *not* optional exclude output
         prohibit_project(_output_literals);
+
+        stat_point(buckets);
+
+        if(_user_want_terminate) {
+                console() << "User termination. " << endl;
+             return false;
+        }
+
+        if(tolerance_met(buckets)) {
+            console() << "Tolerance condition met" << endl;
+            return false;
+        }
+
         return true;
     }
+
     return false;
 }
 

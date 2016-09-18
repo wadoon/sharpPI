@@ -24,6 +24,20 @@ using namespace Minisat;
 #include <fstream>
 #include <iostream>
 
+
+const std::string COMMAND_APPROXMC   = "approxmc-p.py";
+const std::string INDICATOR_APPROXMC = "";
+
+const std::string COMMAND_DHSARP     = "dsharp -noIBCP";
+const std::string INDICATOR_DSHARP   = "Models counted after projection:";
+
+const std::string COMMAND_SHARPSAT   = "sharpSAT";
+const std::string INDICATOR_SHARPSAT = "";
+
+const std::string COMMAND_CLASP      = "clasp";
+const std::string INDICATOR_CLASP    = "Model Count: ";
+
+
 class SharpSAT {
 public:
     virtual ~SharpSAT() { }
@@ -99,20 +113,8 @@ public:
     uint64_t operator()(const char *filename) { return run(filename); }
 
 private:
-    virtual uint64_t run(const std::string &filename) = 0;
-};
+    virtual uint64_t run(const std::string &filename);
 
-class DSharpSAT : public SharpSAT {
-public:
-    virtual ~DSharpSAT() {}
-private:
-    virtual  uint64_t run(const std::string &filename) override;
-};
-
-
-class ClaspSharpSAT : public SharpSAT {
-public:
-    virtual ~ClaspSharpSAT() {}
-private:
-    virtual  uint64_t run(const std::string &filename) override;
+    std::string model_size_indicator;
+    std::string command;
 };

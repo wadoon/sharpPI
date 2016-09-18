@@ -13,13 +13,6 @@ using namespace std;
 #include <string>
 #include "util.h"
 
-const string DSHARP = "dsharp -noIBCP ";
-const string DSHARP_FIND = "Models counted after projection:";
-
-const string CLASP = "clasp ";
-const string CLASP_FIND = "Model Count: "; //TODO look up string
-
-
 void exec(const string& cmd, stringstream& output) {
     char buffer[128];
     std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), pclose);
@@ -47,19 +40,10 @@ uint64_t find_models_in_output(stringstream& output, const string& find) {
     throw runtime_error("no model count found in output");
 }
 
-uint64_t DSharpSAT::run(const string &filename) {
-    auto cmd = DSHARP + filename;
+uint64_t SharpSAT::run(const string &filename) {
+    auto cmd = command + filename;
     console() << ">>> " << cmd << endl;
     stringstream buffer;
     exec(cmd, buffer);
-    return find_models_in_output(buffer, DSHARP_FIND);
-}
-
-
-uint64_t ClaspSharpSAT::run(const string &filename) {
-    auto cmd = CLASP + filename;
-    console() << ">>> " << cmd << endl;
-    stringstream buffer;
-    exec(cmd, buffer);
-    return find_models_in_output(buffer, CLASP_FIND);
+    return find_models_in_output(buffer, model_size_indicator);
 }

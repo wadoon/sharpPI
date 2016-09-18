@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(sharpPI)
 
-SET(VERSION "1.0")
+SET(VERSION "1.1")
 string(TIMESTAMP DATE "%Y-%m-%dT%H:%M:%SZ")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake")

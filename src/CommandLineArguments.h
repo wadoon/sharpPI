@@ -22,6 +22,10 @@ enum class OperationMode {
         SHARPSAT = 'X',
         DISHARP = 'I'};
 
+enum class SharpSatTool {
+    NONE, DSHARP, CLASP, SHARPSAT, APPROXMC
+};
+
 class CommandLineArguments {
 public:
     CommandLineArguments();
@@ -52,8 +56,12 @@ public:
 
     double tolerance() {return _tolerance;}
 
+    SharpSatTool& sharpsat_tool() { return _ssat_tool; }
+    std::string& sharpsat_command() { return _ssat_command; }
+    std::string& sharpsat_indicator() { return _ssat_indicator; }
+
 private:
-    po::options_description general, ndet;
+    po::options_description general, ndet, ssat;
     po::positional_options_description p;
     po::variables_map vm;
 
@@ -70,4 +78,8 @@ private:
     uint64_t _limit;
     uint _max_models;
     //bool _statistics;
+
+    SharpSatTool _ssat_tool;
+    std::string _ssat_command;
+    std::string _ssat_indicator;
 };
