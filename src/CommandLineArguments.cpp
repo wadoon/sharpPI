@@ -104,6 +104,7 @@ CommandLineArguments::CommandLineArguments()
         ("output,o", po::value<StringList>(&_output_variables)->value_name("VARIABLE"), "output")
         ("tolerance,t", po::value<double>(&_tolerance)->value_name("DOUBLE")->default_value(-INFINITY), "tolerance criterium")
         ("statistic", po::value<string>(&_stat_filename)->value_name("FILE")->default_value(""), "statistics filename, default: no statistic is written")
+        ("list,l", po::value<string>(&_bucketlist_filename)->value_name("FILE")->default_value(""), "list all input/seed/output pairs")
         //positional
         ("filename", po::value<string>(&_input_filename)->required()->composing(), "input filename");
 

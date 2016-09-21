@@ -14,9 +14,15 @@
 #include "core/Solver.h"
 #include "utils/System.h"
 #include <limits>
+<<<<<<< HEAD
 #include "sat.h"
 #include "stat.h"
 #include "sharpsat.h"
+=======
+#include <iostream>
+
+//#include "pstreams-0.8.1/pstream.h"
+>>>>>>> print input/seed/ouput pairs
 
 
 #ifdef GLUCOSE
@@ -31,13 +37,57 @@ using namespace std;
 
 using LabelList = std::vector<std::pair<uint64_t, Var>>;
 
+class PICounter; // forward
+
+class BucketListWriter {
+public:
+  BucketListWriter() 
+    : active(false) {
+    
+  }
+
+  void activate(const std::string& filename) {
+    out.open(filename);
+    active = true;
+  }
+
+  void header(const PICounter*);
+  void write(MinisatInterface*);
+
+
+public:
+  bool active;
+
+private:
+    
+    void write_header(const std::vector<CBMCVariable>& vars, 
+		      string type) {     
+      for(auto var : vars) {
+	out << "% "  << type << " " << var.variable_name << " " << var.time;
+	for(auto pvar : var.variables) {
+	  out << " " << pvar;
+	  variables.push_back(pvar);
+	}
+	out << "\n";
+      }       
+    }
+
+
+  ofstream out;
+  std::vector<uint> variables;
+};
 
 class PICounter {
+  friend class BucketListWriter;
 public:
 
     PICounter() :
     solver(nullptr)
-    { last = chrono::high_resolution_clock::now(); }
+    { 
+      last = chrono::high_resolution_clock::now(); 
+
+
+    }
 
     ~PICounter() {
             if(_stat.active) {
@@ -46,7 +96,6 @@ public:
                 s << _stat.fileout.str();
             } else {
                 console() << "statistic deactivated" << endl;
-
             }
     }
 
@@ -176,6 +225,11 @@ public:
         _stat.header();
     }
 
+    void enable_list(const string& filename) {
+      _listwriter.activate(filename);
+      _listwriter.header(this);
+    }
+
     Statistic& stat() { return _stat; }
 
     void set_tolerance(double t) { tolerance = t; }
@@ -200,6 +254,7 @@ public:
 
 private:
     Statistic _stat;
+    BucketListWriter _listwriter;
 
     //SolverInterface *solver;
     MinisatInterface *solver;
@@ -214,10 +269,20 @@ private:
     std::vector<Var> _seed_literals;
 
     bool verbose;
-    std::string statistic_filename;
+    
+    std::string
+      statistic_filename,
+      bucketlist_filename;
+
+    
 
     double tolerance = -INFINITY;
 
     chrono::high_resolution_clock::time_point last;
-    void stat_point(const Buckets& result);
+  
+  void stat_point(const Buckets& result);
+  void list() {
+    _listwriter.write(solver);
+  }
+  
 };

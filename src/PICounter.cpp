@@ -12,6 +12,30 @@
 
 extern bool _user_want_terminate;
 
+
+void BucketListWriter::header(const PICounter* counter) {
+  write_header(counter->_input_variables, "i");
+  write_header(counter->_seed_variables, "s");
+  write_header(counter->_output_variables, "o");
+}
+
+
+void BucketListWriter::write(MinisatInterface* solver) {
+  if(!active) return;
+
+  for(auto v : variables) {
+    lbool val =  solver->model_value(v);
+    if(val == l_True) 
+      out << '1';
+    else 
+      if(val == l_False)
+	out << '0';
+      else if(val == l_Undef)
+	out << '0';
+    out << "\n";
+  }
+}
+
 /**
  *
  *
@@ -72,9 +96,12 @@ void PICounter::stat_point(const Buckets& result) {
     _stat.update(result);
     _stat.update(solver);
     _stat.write();
+    if(_listwriter.active)
+      _listwriter.write(solver);
 }
 
 bool PICounter::count_one_bucket(Buckets& previous) {
+<<<<<<< HEAD
     vector<Lit> assum;
 
     if(solver->solve(assum)) {
@@ -149,10 +176,91 @@ bool PICounter::count_one_bucket_sharp(Buckets& buckets,
                 << "] = " << interpret(var.positions) << std::endl;
             }
         }
+=======
+	vector<Lit> assum;
 
-        // we fixate the found output
-        assum = project_model(_output_literals);
+	if(solver->solve(assum)) {
+		if (verbose) {
+			std::cout << "Output: " << std::endl;
+			for (auto &var : _output_variables) {
+				std::cout <<
+					"\t" << var.variable_name
+					<< "[" << var.time << "] = "
+					<< interpret(var.positions)
+					<< std::endl;
+			}
+		}
 
+		int i = 15234234;
+
+		// we fixate the found output
+		assum = project_model(_output_literals);
+
+		Bucket& bucket = previous.at(interpret(_output_literals));
+		bool a;
+
+		do {
+			if (verbose) {
+				std::cout << "\t\tInput: " << std::endl;
+				for (auto &var : _input_variables) {
+					std::cout << "\t\t\t" << var.variable_name << "["
+						<< var.time << "] = " << interpret(var.positions)
+						<< std::endl;
+				}
+
+				for (auto &var : _seed_variables) {
+					std::cout << "\t\t\t" << var.variable_name << "["
+						<< var.time << "] = " << interpret(var.positions)
+						<< std::endl;
+				}
+			}
+
+			bucket.size++; // we found the first model, already
+			prohibit_project(_input_literals);
+			stat_point(previous);
+
+			if(_user_want_terminate) {
+				console() << "User termination. " << endl;
+				break;
+			}
+
+			//exclude the found input pattern
+			a = solver->solve(assum);
+		} while (a);
+
+		if(tolerance_met(previous)) {
+			console() << "Tolerance condition met" << endl;
+			return false;
+		}
+
+		//optional exclude output
+		prohibit_project(_output_literals);
+		return true;
+	}
+	return false;
+}
+
+
+bool PICounter::count_one_bucket_sharp(Buckets& previous,
+		const string &filename) {
+	vector<Lit> assum;
+
+	DSharpSAT sharpSAT;
+
+	if (solver->solve(assum)) {
+		if (verbose) {
+			std::cout << "Output: " << std::endl;
+			for (auto &var : _output_variables) {
+				std::cout << "\t" << var.variable_name << "[" << var.time
+					<< "] = " << interpret(var.positions) << std::endl;
+			}
+		}
+>>>>>>> print input/seed/ouput pairs
+
+		// we fixate the found output
+		assum = project_model(_output_literals);
+
+<<<<<<< HEAD
         uint64_t pi = sharpSAT(assum, _input_literals);
         buckets.at(interpret(_output_literals)).size = pi;
 
@@ -175,36 +283,49 @@ bool PICounter::count_one_bucket_sharp(Buckets& buckets,
     }
 
     return false;
+=======
+		uint64_t pi = sharpSAT(/*solver*/filename, assum, _input_literals);
+
+		//        Bucket b = {pi, true};
+
+		previous.push_back({pi,true});
+
+		//optional exclude output
+		prohibit_project(_output_literals);
+		return true;
+	}
+	return false;
+>>>>>>> print input/seed/ouput pairs
 }
 
 vector<Lit> negate_cube(vector<Lit> cube) {
-    vector<Lit> clause;
-    for (const Lit l : cube) {
-        clause.push_back(~l);
-    }
-    return clause;
+	vector<Lit> clause;
+	for (const Lit l : cube) {
+		clause.push_back(~l);
+	}
+	return clause;
 }
 
 LabelList PICounter::prepare_sync_counting(Buckets& buckets) {
-    LabelList label_literals;
-    std::vector<Lit> assump;
-    //    std::fill(closed.begin(), closed.end(), true);
+	LabelList label_literals;
+	std::vector<Lit> assump;
+	//    std::fill(closed.begin(), closed.end(), true);
 
-    while( solver->solve(assump) ) {
-        // get the model
-        vector<Lit> model = negate_cube(project_model(_output_literals));
+	while( solver->solve(assump) ) {
+		// get the model
+		vector<Lit> model = negate_cube(project_model(_output_literals));
 
-        // define a label literal
-        Var label = solver->new_variable();
-        // label to clause
-        model.push_back(mkLit(label,true));
+		// define a label literal
+		Var label = solver->new_variable();
+		// label to clause
+		model.push_back(mkLit(label,true));
 
-        // add clause to solver
-        solver->add_clause(model);
+		// add clause to solver
+		solver->add_clause(model);
 
-        //if label is true, that ~label is false and the
-        //model clause takes action and prohibits
-        assump.push_back(mkLit(label,false));
+		//if label is true, that ~label is false and the
+		//model clause takes action and prohibits
+		assump.push_back(mkLit(label,false));
 
         auto output = interpret(_output_literals);
 
