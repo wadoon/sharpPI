@@ -138,9 +138,8 @@ bool PICounter::count_one_bucket(Buckets& previous) {
 
 
 bool PICounter::count_one_bucket_sharp(Buckets& buckets,
-                                       const string &filename) {
+                                       SharpSAT& sharpSAT) {
     vector<Lit> assum;
-    SharpSAT sharpSAT;
 
     if (solver->solve(assum)) {
         if (verbose) {
@@ -153,7 +152,8 @@ bool PICounter::count_one_bucket_sharp(Buckets& buckets,
 
         // we fixate the found output
         assum = project_model(_output_literals);
-        uint64_t pi = sharpSAT(/*solver*/filename, assum, _input_literals);
+
+        uint64_t pi = sharpSAT(assum, _input_literals);
         buckets.at(interpret(_output_literals)).size = pi;
 
         // *not* optional exclude output

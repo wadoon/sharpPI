@@ -14,9 +14,9 @@
 #include "core/Solver.h"
 #include "utils/System.h"
 #include <limits>
-
-
-//#include "pstreams-0.8.1/pstream.h"
+#include "sat.h"
+#include "stat.h"
+#include "sharpsat.h"
 
 
 #ifdef GLUCOSE
@@ -27,9 +27,6 @@ using namespace Minisat;
 
 
 using namespace std;
-
-#include "sat.h"
-#include "stat.h"
 
 
 using LabelList = std::vector<std::pair<uint64_t, Var>>;
@@ -100,7 +97,7 @@ public:
 
     bool count_one_bucket(Buckets& previous);
 
-    bool count_one_bucket_sharp(Buckets& previous, const string &filename);
+    bool count_one_bucket_sharp(Buckets& previous, SharpSAT& sharp);
 
     uint64_t count_sat(uint64_t max_count = -1);
 
@@ -169,8 +166,8 @@ public:
         _seed_variables = seedvar;
     }
 
-    bool count_det_iter_sharp(vector<uint64_t>& previous,
-                              const std::string& dimacs_filename);
+    //    bool count_det_iter_sharp(vector<uint64_t>& previous,
+    //                          const std::string& dimacs_filename);
 
 
     void enable_stat(const string& filename) {

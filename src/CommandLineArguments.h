@@ -20,7 +20,7 @@ enum class OperationMode {
         NRAND = 'N',
         DSHARP = 'T',
         SHARPSAT = 'X',
-        DISHARP = 'I'};
+        BUCKETSHARP = 'I'};
 
 enum class SharpSatTool {
     NONE, DSHARP, CLASP, SHARPSAT, APPROXMC

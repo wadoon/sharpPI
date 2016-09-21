@@ -41,7 +41,7 @@ uint64_t find_models_in_output(stringstream& output, const string& find) {
 }
 
 uint64_t SharpSAT::run(const string &filename) {
-    auto cmd = command + filename;
+    auto cmd = command + " " + filename;
     console() << ">>> " << cmd << endl;
     stringstream buffer;
     exec(cmd, buffer);

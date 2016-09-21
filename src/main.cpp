@@ -6,6 +6,7 @@
 #include "util.h"
 #include "entropy.h"
 #include "PICounter.h"
+#include "sharpsat.h"
 
 #include "stat.h"
 
@@ -212,18 +213,20 @@ int det_sync(const CommandLineArguments &cli, PICounter &counter) {
  *
  */
 int det_bucket_sharp(CommandLineArguments &cli, PICounter &counter) {
-    console() << "Operation Mode: Deterministic ITER" << endl;
+    console() << "Operation Mode: Bucket with #SAT-p" << endl;
     const uint64_t SI = space_size(counter.get_input_literals().size());
     const uint64_t SO = space_size(counter.get_output_literals().size());
 
     counter.stat().SO = SO;
     counter.stat().SI = SI;
 
-    Buckets ret;
+    Buckets ret(SO, {0,false});
+
+    SharpSAT ssat( cli.input_filename(), cli.sharpsat_indicator(), cli.sharpsat_command());
 
     bool b = true;
     for (int k = 1; /* k <= cli.limit() && b */ true; k++) {
-        b = counter.count_one_bucket_sharp(ret, cli.input_filename());
+        b = counter.count_one_bucket_sharp(ret, ssat);
 
         if (cli.verbose()) {
             console() << k << "# Result: " << ret << "\n";
@@ -333,12 +336,12 @@ int run(CommandLineArguments &cli) {
     case OperationMode::DUNGUIDED:
         return det_unguided(cli, counter);
 
-    case OperationMode::DISHARP:
+    case OperationMode::BUCKETSHARP:
         return det_bucket_sharp(cli, counter);
 
-    case OperationMode::DSHARP:
-        cout << "PROGRAMING ERROR THIS CASE SHOULD HANDLE BEFORE." << endl;
-        break;
+        //    case OperationMode::DSHARP:
+        //cout << "PROGRAMING ERROR THIS CASE SHOULD HANDLE BEFORE." << endl;
+        //break;
     }
 
 

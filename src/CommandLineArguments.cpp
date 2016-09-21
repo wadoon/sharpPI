@@ -41,8 +41,8 @@ std::istream& operator>>(std::istream& in, OperationMode& mode)
                         mode = OperationMode::NRAND;
                     }
                     else {
-                        if(token == "dsharp") {
-                            mode = OperationMode::DSHARP;
+                        if(token == "bucketsharp") {
+                            mode = OperationMode::BUCKETSHARP;
                         }
                         else {
                             throw boost::program_options::validation_error
@@ -56,6 +56,8 @@ std::istream& operator>>(std::istream& in, OperationMode& mode)
 std::istream& operator>>(std::istream& in, SharpSatTool& tool) {
     std::string token;
     in >> token;
+
+    tool = SharpSatTool::NONE;
 
     if(token == "dsharp") {
         tool = SharpSatTool::DSHARP;
@@ -71,6 +73,11 @@ std::istream& operator>>(std::istream& in, SharpSatTool& tool) {
 
     if(token == "approxmc") {
         tool = SharpSatTool::APPROXMC;
+    }
+
+
+    if(tool == SharpSatTool::NONE) {
+        console() << "!!! ERROR: #SAT-p unknown !!!" << endl;
     }
 
     return in;
@@ -155,7 +162,12 @@ void CommandLineArguments::initialize(int argc, char *argv[]) {
                 _ssat_command = COMMAND_CLASP;
                 _ssat_indicator = INDICATOR_CLASP;
                 break;
+            default:
+                break;
             }
+
+            console() << "Use: #SAT-p: '" << _ssat_command << "' with " << _ssat_indicator << endl;
+
         }
 
     }

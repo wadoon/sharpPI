@@ -40,18 +40,20 @@ const std::string INDICATOR_CLASP    = "Model Count: ";
 
 class SharpSAT {
 public:
-    virtual ~SharpSAT() { }
+    SharpSAT(std::string origin,
+             std::string indicator,
+             std::string cmd)
+        :  origin_filename(origin),
+           model_size_indicator(indicator),
+           command(cmd) {
 
-    uint64_t operator()(std::string filename) {
-        return (*this)(filename.c_str());
     }
 
-    uint64_t operator()(//SolverInterface *solver,
-                        const string dimacs,
-                        const vector<Lit> &assumption,
-                        const vector<Var> &_input_variables) {
-        //        auto mi = dynamic_cast<MinisatInterface *>(solver);
 
+    virtual ~SharpSAT() { }
+
+    uint64_t operator()(const vector<Lit> &assumption,
+                        const vector<Var> &_input_variables) {
         const boost::filesystem::path temp = boost::filesystem::unique_path(
                 "/tmp/%%%-%%%.cnf"
         );
@@ -76,7 +78,7 @@ public:
         }
         */
 
-        ifstream in(dimacs);
+        ifstream in(origin_filename);
         ofstream out(tempstr);
 
         char buffer[4096];
@@ -110,11 +112,17 @@ public:
         return (*this)(tempstr);
     }
 
-    uint64_t operator()(const char *filename) { return run(filename); }
+
+
+    uint64_t operator()(std::string filename) {
+        return run(filename.c_str());
+    }
+
 
 private:
     virtual uint64_t run(const std::string &filename);
 
+    std::string origin_filename;
     std::string model_size_indicator;
     std::string command;
 };
