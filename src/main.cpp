@@ -208,58 +208,49 @@ int det_sync(const CommandLineArguments &cli, PICounter &counter) {
  *
  */
 int det_bucket_sharp(CommandLineArguments &cli, PICounter &counter) {
-<<<<<<< HEAD
-    console() << "Operation Mode: Bucket with #SAT-p" << endl;
-    const uint64_t SI = space_size(counter.get_input_literals().size());
-    const uint64_t SO = space_size(counter.get_output_literals().size());
+  console() << "Operation Mode: Bucket with #SAT-p" << endl;
+  const uint64_t SI = space_size(counter.get_input_literals().size());
+  const uint64_t SO = space_size(counter.get_output_literals().size());
 
-    counter.stat().SO = SO;
-    counter.stat().SI = SI;
+  counter.stat().SO = SO;
+  counter.stat().SI = SI;
 
-    Buckets ret(SO, {0,false});
+  Buckets ret(SO, {0,false});
 
-    SharpSAT ssat( cli.input_filename(), cli.sharpsat_indicator(), cli.sharpsat_command());
+  SharpSAT ssat( cli.input_filename(), cli.sharpsat_indicator(), cli.sharpsat_command());
+
+  bool b = true;
+  for (int k = 1; /* k <= cli.limit() && b */ true; k++) {
+    b = counter.count_one_bucket_sharp(ret, ssat);
+
+    if (cli.verbose()) {
+      console() << k << "# Result: " << ret << "\n";
+    }
+
+    Buckets ret;
 
     bool b = true;
-    for (int k = 1; /* k <= cli.limit() && b */ true; k++) {
-        b = counter.count_one_bucket_sharp(ret, ssat);
+    for (int k = 1; true; k++) {
+      b = counter.count_one_bucket_sharp(ret, ssat);
 
-        if (cli.verbose()) {
-            console() << k << "# Result: " << ret << "\n";
-        }
-=======
-	console() << "Operation Mode: Deterministic ITER" << endl;
-	const uint64_t SI = space_size(counter.get_input_literals().size());
-	const uint64_t SO = space_size(counter.get_output_literals().size());
+      if (cli.verbose()) {
+	console() << k << "# Result: " << ret << "\n";
+      }
 
-	counter.stat().SO = SO;
-	counter.stat().SI = SI;
->>>>>>> print input/seed/ouput pairs
+      if (_user_want_terminate) {
+	console() << "Terminate on user request" << endl;
+	break;
+      }
 
-	Buckets ret;
+      if(!b) {
+	cout << "Search was exhaustive!" << endl;
+	break;
+      }
+    }
 
-	bool b = true;
-	for (int k = 1; /* k <= cli.limit() && b */ true; k++) {
-		b = counter.count_one_bucket_sharp(ret, cli.input_filename());
-
-		if (cli.verbose()) {
-			console() << k << "# Result: " << ret << "\n";
-		}
-
-		if (_user_want_terminate) {
-			console() << "Terminate on user request" << endl;
-			break;
-		}
-
-		if(!b) {
-			cout << "Search was exhaustive!" << endl;
-			break;
-		}
-	}
-
-	return 0;
+    return 0;
+  }
 }
-
 
 /**
  *
@@ -340,40 +331,28 @@ int run(CommandLineArguments &cli) {
 
 
 	switch (cli.mode()) {
-		case OperationMode::DBUCKETALL:
-			return count_deterministic(cli, counter);
+	case OperationMode::DBUCKETALL:
+	  return count_deterministic(cli, counter);
 
-		case OperationMode::NRAND:
-			return ndet(cli, counter);
+	case OperationMode::NRAND:
+	  return ndet(cli, counter);
 
-		case OperationMode::DBUCKET:
-			return det_bucket(cli, counter);
+	case OperationMode::DBUCKET:
+	  return det_bucket(cli, counter);
 
-		case OperationMode::DSYNC:
-			return det_sync(cli, counter);
+	case OperationMode::DSYNC:
+	  return det_sync(cli, counter);
 
-<<<<<<< HEAD
-    case OperationMode::BUCKETSHARP:
-        return det_bucket_sharp(cli, counter);
+	case OperationMode::BUCKETSHARP:
+	  return det_bucket_sharp(cli, counter);
 
-        //    case OperationMode::DSHARP:
-        //cout << "PROGRAMING ERROR THIS CASE SHOULD HANDLE BEFORE." << endl;
-        //break;
-    }
-=======
-		case OperationMode::DUNGUIDED:
-			return det_unguided(cli, counter);
+	  //    case OperationMode::DSHARP:
+	  //cout << "PROGRAMING ERROR THIS CASE SHOULD HANDLE BEFORE." << endl;
+	  //break;
 
-		case OperationMode::DISHARP:
-			return det_bucket_sharp(cli, counter);
-
-		case OperationMode::DSHARP:
-			cout << "PROGRAMING ERROR THIS CASE SHOULD HANDLE BEFORE." << endl;
-			break;
+	case OperationMode::DUNGUIDED:
+	  return det_unguided(cli, counter);
 	}
->>>>>>> print input/seed/ouput pairs
-
-
 	return 0;
 }
 

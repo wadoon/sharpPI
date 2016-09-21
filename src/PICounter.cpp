@@ -32,8 +32,8 @@ void BucketListWriter::write(MinisatInterface* solver) {
 	out << '0';
       else if(val == l_Undef)
 	out << '0';
-    out << "\n";
   }
+  out << "\n";
 }
 
 /**
@@ -101,7 +101,6 @@ void PICounter::stat_point(const Buckets& result) {
 }
 
 bool PICounter::count_one_bucket(Buckets& previous) {
-<<<<<<< HEAD
     vector<Lit> assum;
 
     if(solver->solve(assum)) {
@@ -169,133 +168,40 @@ bool PICounter::count_one_bucket_sharp(Buckets& buckets,
     vector<Lit> assum;
 
     if (solver->solve(assum)) {
-        if (verbose) {
-            std::cout << "Output: " << std::endl;
-            for (auto &var : _output_variables) {
-                std::cout << "\t" << var.variable_name << "[" << var.time
-                << "] = " << interpret(var.positions) << std::endl;
-            }
-        }
-=======
-	vector<Lit> assum;
-
-	if(solver->solve(assum)) {
-		if (verbose) {
-			std::cout << "Output: " << std::endl;
-			for (auto &var : _output_variables) {
-				std::cout <<
-					"\t" << var.variable_name
-					<< "[" << var.time << "] = "
-					<< interpret(var.positions)
-					<< std::endl;
-			}
-		}
-
-		int i = 15234234;
-
-		// we fixate the found output
-		assum = project_model(_output_literals);
-
-		Bucket& bucket = previous.at(interpret(_output_literals));
-		bool a;
-
-		do {
-			if (verbose) {
-				std::cout << "\t\tInput: " << std::endl;
-				for (auto &var : _input_variables) {
-					std::cout << "\t\t\t" << var.variable_name << "["
-						<< var.time << "] = " << interpret(var.positions)
-						<< std::endl;
-				}
-
-				for (auto &var : _seed_variables) {
-					std::cout << "\t\t\t" << var.variable_name << "["
-						<< var.time << "] = " << interpret(var.positions)
-						<< std::endl;
-				}
-			}
-
-			bucket.size++; // we found the first model, already
-			prohibit_project(_input_literals);
-			stat_point(previous);
-
-			if(_user_want_terminate) {
-				console() << "User termination. " << endl;
-				break;
-			}
-
-			//exclude the found input pattern
-			a = solver->solve(assum);
-		} while (a);
-
-		if(tolerance_met(previous)) {
-			console() << "Tolerance condition met" << endl;
-			return false;
-		}
-
-		//optional exclude output
-		prohibit_project(_output_literals);
-		return true;
+      if (verbose) {
+	std::cout << "Output: " << std::endl;
+	for (auto &var : _output_variables) {
+	  std::cout << "\t" << var.variable_name << "[" << var.time
+		    << "] = " << interpret(var.positions) << std::endl;
 	}
+      }
+
+      // we fixate the found output
+      assum = project_model(_output_literals);
+
+      uint64_t pi = sharpSAT(assum, _input_literals);
+      buckets.at(interpret(_output_literals)).size = pi;
+
+      // *not* optional exclude output
+      prohibit_project(_output_literals);
+
+      stat_point(buckets);
+
+      if(_user_want_terminate) {
+	console() << "User termination. " << endl;
 	return false;
-}
+      }
 
+      if(tolerance_met(buckets)) {
+	console() << "Tolerance condition met" << endl;
+	return false;
+      }
 
-bool PICounter::count_one_bucket_sharp(Buckets& previous,
-		const string &filename) {
-	vector<Lit> assum;
-
-	DSharpSAT sharpSAT;
-
-	if (solver->solve(assum)) {
-		if (verbose) {
-			std::cout << "Output: " << std::endl;
-			for (auto &var : _output_variables) {
-				std::cout << "\t" << var.variable_name << "[" << var.time
-					<< "] = " << interpret(var.positions) << std::endl;
-			}
-		}
->>>>>>> print input/seed/ouput pairs
-
-		// we fixate the found output
-		assum = project_model(_output_literals);
-
-<<<<<<< HEAD
-        uint64_t pi = sharpSAT(assum, _input_literals);
-        buckets.at(interpret(_output_literals)).size = pi;
-
-        // *not* optional exclude output
-        prohibit_project(_output_literals);
-
-        stat_point(buckets);
-
-        if(_user_want_terminate) {
-                console() << "User termination. " << endl;
-             return false;
-        }
-
-        if(tolerance_met(buckets)) {
-            console() << "Tolerance condition met" << endl;
-            return false;
-        }
-
-        return true;
+      return true;
     }
 
     return false;
-=======
-		uint64_t pi = sharpSAT(/*solver*/filename, assum, _input_literals);
-
-		//        Bucket b = {pi, true};
-
-		previous.push_back({pi,true});
-
-		//optional exclude output
-		prohibit_project(_output_literals);
-		return true;
-	}
-	return false;
->>>>>>> print input/seed/ouput pairs
+    
 }
 
 vector<Lit> negate_cube(vector<Lit> cube) {

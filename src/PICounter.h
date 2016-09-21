@@ -14,16 +14,10 @@
 #include "core/Solver.h"
 #include "utils/System.h"
 #include <limits>
-<<<<<<< HEAD
 #include "sat.h"
 #include "stat.h"
 #include "sharpsat.h"
-=======
 #include <iostream>
-
-//#include "pstreams-0.8.1/pstream.h"
->>>>>>> print input/seed/ouput pairs
-
 
 #ifdef GLUCOSE
 using namespace Glucose;

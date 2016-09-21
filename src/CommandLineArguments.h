@@ -56,15 +56,11 @@ public:
 
     double tolerance() {return _tolerance;}
 
-<<<<<<< HEAD
     SharpSatTool& sharpsat_tool() { return _ssat_tool; }
     std::string& sharpsat_command() { return _ssat_command; }
     std::string& sharpsat_indicator() { return _ssat_indicator; }
-
-=======
-
     const std::string& bucketlist_filename() const { return _bucketlist_filename;}
->>>>>>> print input/seed/ouput pairs
+
 private:
     po::options_description general, ndet, ssat;
     po::positional_options_description p;
